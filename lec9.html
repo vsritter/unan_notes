@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>NEEDBios</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Victor Ritter" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# NEEDBios
+## R Lab
+### Victor Ritter
+### UNC-CH
+### Jan 2020
+
+---
+
+
+
+```css
+.tiny .remark-code {
+  font-size: 70% !important;
+}
+```
+
+
+&lt;style type="text/css"&gt;
+.tiny .remark-code {
+  font-size: 70% !important;
+}
+&lt;/style&gt;
+
+
+
+
+class: center, middle, inverse
+# Part I
+# Analysis of repeated measures &lt;br/&gt; in R
+
+---
+## GEE - basics
+
+- population-averaged estimates and their standard errors
+
+- The responses `\(Y_1, Y_2, \dots, Y_n\)` are correlated or clustered
+
+- There is a linear relationship between the covariates and a transformation of the mean response (i.e. link function)
+
+- Within-subject covariance has some structure (“working covariance”):
+
+  - independence (observations over time are independent)
+  
+  - exchangeable (all observations over time have the same correlation)
+  
+  - AR(1) (correlation decreases as a power of how many time-points apart two observations are)
+  
+  - unstructured (correlation between all time-points may be different)
+
+
+---
+## GEE - basics
+
+- misspecified covariance: use “sandwich estimator” for robustness
+
+  - idea behind is to use the empirical residuals to approximate the underlying covariance (iteratively reweighted least squares)
+  
+- Why bother specifying the working covariance to begin with?
+
+  - Statistical efficiency
+  
+  - Sandwich robustness is a large-sample property
+
+- Should we use sandwich all the time? No, it is problematic if
+
+  - The number of independent subjects is much smaller than the number of repeated measures
+  
+  - The design is unbalanced – the number of repeated measures differs across individuals
+
+---
+## GEE - package and data
+
+- **geepack** package
+
+- **dietox** data available
+  
+  - Growth curves of pigs in a 3x3 factorial experiment
+  
+  - interest in modeling pig's weight as a function of time, vitamin E, and Copper supplement dosage
+  
+
+```r
+library(geepack)
+library(tidyverse)
+as_tibble(dietox)
+```
+
+```
+&gt; # A tibble: 861 x 8
+&gt;   Pig   Evit    Cu    Litter Start Weight  Feed  Time
+&gt;   &lt;fct&gt; &lt;fct&gt;   &lt;fct&gt; &lt;fct&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+&gt; 1 4601  Evit000 Cu000 1       26.5   26.5 NA        1
+&gt; 2 4601  Evit000 Cu000 1       26.5   27.6  5.20     2
+&gt; 3 4601  Evit000 Cu000 1       26.5   36.5 17.6      3
+&gt; 4 4601  Evit000 Cu000 1       26.5   40.3 28.5      4
+&gt; 5 4601  Evit000 Cu000 1       26.5   49.1 45.2      5
+&gt; # … with 856 more rows
+```
+  
+---
+## GEE - package and data
+
+
+```r
+dietox %&gt;%
+  group_by(Pig) %&gt;%
+  count() %&gt;%
+  arrange(n) %&gt;%
+  print(n = 10)
+```
+
+```
+&gt; # A tibble: 72 x 2
+&gt; # Groups:   Pig [72]
+&gt;    Pig       n
+&gt;    &lt;fct&gt; &lt;int&gt;
+&gt;  1 5524     11
+&gt;  2 5527     11
+&gt;  3 5528     11
+&gt;  4 4601     12
+&gt;  5 4602     12
+&gt;  6 4603     12
+&gt;  7 4605     12
+&gt;  8 4641     12
+&gt;  9 4643     12
+&gt; 10 4645     12
+&gt; # … with 62 more rows
+```
+
+---
+## GEE - descriptive
+
+Marginal covariance
+
+
+```r
+pig_wide &lt;- dietox %&gt;%
+  dplyr::select(Pig, Weight, Time) %&gt;% 
+  spread(Time, Weight) %&gt;% 
+  as_tibble()
+pig_wide
+```
+
+```
+&gt; # A tibble: 72 x 13
+&gt;   Pig     `1`   `2`   `3`   `4`   `5`   `6`   `7`   `8`
+&gt;   &lt;fct&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+&gt; 1 4601   26.5  27.6  36.5  40.3  49.1  55.4  59.6  67  
+&gt; 2 4602   28.3  30.1  38.3  44.5  51.6  57.6  65    73  
+&gt; 3 4603   27.6  30.6  38.7  47.2  54.1  61.5  68.5  75.2
+&gt; 4 4605   31.5  34.8  40.7  47.7  55.9  62.2  70.7  78  
+&gt; 5 4641   27.1  33    42.5  50.1  56.5  63    72.5  80.5
+&gt; # … with 67 more rows, and 4 more variables: `9` &lt;dbl&gt;,
+&gt; #   `10` &lt;dbl&gt;, `11` &lt;dbl&gt;, `12` &lt;dbl&gt;
+```
+
+---
+## GEE - descriptive
+
+
+```r
+dietox %&gt;%
+  ggplot(aes(x = Time, y = Weight, group = Pig)) +
+  geom_point() + geom_line() +
+  stat_summary(fun.y=mean, aes(group=1),
+               geom="line", colour="red", size = 1.5)
+```
+
+&lt;img src="lec9_files/figure-html/unnamed-chunk-5-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## GEE - descriptive
+
+
+```r
+dietox %&gt;%
+  ggplot(aes(x = Time, y = Weight, group = Pig, color = Cu)) +
+  geom_point() +
+  geom_line()
+```
+
+&lt;img src="lec9_files/figure-html/unnamed-chunk-6-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## GEE - descriptive
+
+Marginal covariance
+
+
+```r
+cor(pig_wide[,-1], use = "pairwise.complete.obs") %&gt;% round(2)
+```
+
+```
+&gt;       1    2    3    4    5    6    7    8    9   10   11   12
+&gt; 1  1.00 0.92 0.91 0.87 0.81 0.74 0.74 0.75 0.72 0.68 0.70 0.67
+&gt; 2  0.92 1.00 0.96 0.92 0.86 0.79 0.80 0.78 0.74 0.69 0.70 0.64
+&gt; 3  0.91 0.96 1.00 0.95 0.90 0.83 0.81 0.79 0.77 0.72 0.72 0.68
+&gt; 4  0.87 0.92 0.95 1.00 0.96 0.92 0.90 0.88 0.86 0.81 0.81 0.76
+&gt; 5  0.81 0.86 0.90 0.96 1.00 0.97 0.94 0.91 0.90 0.82 0.83 0.79
+&gt; 6  0.74 0.79 0.83 0.92 0.97 1.00 0.96 0.93 0.93 0.85 0.86 0.83
+&gt; 7  0.74 0.80 0.81 0.90 0.94 0.96 1.00 0.97 0.96 0.89 0.89 0.86
+&gt; 8  0.75 0.78 0.79 0.88 0.91 0.93 0.97 1.00 0.97 0.89 0.89 0.88
+&gt; 9  0.72 0.74 0.77 0.86 0.90 0.93 0.96 0.97 1.00 0.92 0.94 0.92
+&gt; 10 0.68 0.69 0.72 0.81 0.82 0.85 0.89 0.89 0.92 1.00 0.94 0.91
+&gt; 11 0.70 0.70 0.72 0.81 0.83 0.86 0.89 0.89 0.94 0.94 1.00 0.96
+&gt; 12 0.67 0.64 0.68 0.76 0.79 0.83 0.86 0.88 0.92 0.91 0.96 1.00
+```
+  
+  
+---
+## GEE - model fit
+
+
+.tiny[
+
+```r
+summary(geeAr1)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; geeglm(formula = mf, family = gaussian, data = dietox, id = Pig, 
+&gt;     corstr = "ar1")
+&gt; 
+&gt;  Coefficients:
+&gt;             Estimate Std.err    Wald Pr(&gt;|W|)    
+&gt; (Intercept)  17.6124  1.3354  173.95   &lt;2e-16 ***
+&gt; Time          6.7324  0.0756 7921.11   &lt;2e-16 ***
+&gt; EvitEvit100   2.3782  1.7676    1.81     0.18    
+&gt; EvitEvit200  -0.9779  1.7369    0.32     0.57    
+&gt; CuCu035      -0.3976  1.3928    0.08     0.78    
+&gt; CuCu175       1.2376  1.7376    0.51     0.48    
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; Correlation structure = ar1 
+&gt; Estimated Scale Parameters:
+&gt; 
+&gt;             Estimate Std.err
+&gt; (Intercept)     50.5    9.41
+&gt;   Link = identity 
+&gt; 
+&gt; Estimated Correlation Parameters:
+&gt;       Estimate Std.err
+&gt; alpha    0.933  0.0116
+&gt; Number of clusters:   72  Maximum cluster size: 12
+```
+]
+
+---
+## GEE - model fit
+
+Independent correlation structure
+
+
+```r
+geeInd &lt;- geeglm(mf, id=Pig, data=dietox,
+                 family=gaussian, corstr="ind")
+```
+.tiny[
+
+```r
+summary(geeInd)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; geeglm(formula = mf, family = gaussian, data = dietox, id = Pig, 
+&gt;     corstr = "ind")
+&gt; 
+&gt;  Coefficients:
+&gt;             Estimate Std.err    Wald Pr(&gt;|W|)    
+&gt; (Intercept)  15.0728  1.4219  112.37   &lt;2e-16 ***
+&gt; Time          6.9483  0.0798 7582.55   &lt;2e-16 ***
+&gt; EvitEvit100   2.0813  1.8418    1.28     0.26    
+&gt; EvitEvit200  -1.1133  1.8483    0.36     0.55    
+&gt; CuCu035      -0.7887  1.5349    0.26     0.61    
+&gt; CuCu175       1.7767  1.8213    0.95     0.33    
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; Correlation structure = independence 
+&gt; Estimated Scale Parameters:
+&gt; 
+&gt;             Estimate Std.err
+&gt; (Intercept)     48.3    9.31
+&gt; Number of clusters:   72  Maximum cluster size: 12
+```
+]
+
+---
+## GEE - model fit
+
+- On the choice of the correlation structure
+
+
+```r
+MuMIn::QIC(geeAr1)
+```
+
+```
+&gt; QIC 
+&gt; 906
+```
+
+```r
+MuMIn::QICu(geeAr1)
+```
+
+```
+&gt; QICu 
+&gt;  835
+```
+
+```r
+MuMIn::QIC(geeInd)
+```
+
+```
+&gt; QIC 
+&gt; 958
+```
+
+```r
+MuMIn::QICu(geeInd)
+```
+
+```
+&gt; QICu 
+&gt;  873
+```
+
+---
+## Linear Mixed Models - basics
+
+- Subject-specific or cluster-specific model of correlated/clustered data
+
+- Basic premise is that there is natural heterogeneity across individuals in the
+study population that is the result of unobserved covariates; random effects
+account for the unobserved covariates
+
+- Package **lme4** fit Linear (**`lmer()`**) and Generalized Linear (**`glmer()`**) Mixed models
+
+- Model formula is of the form:
+
+.center[y ~ fixed effects + (random effect | cluster)]
+
+  - Random intercept model: `(1 | id)`
+  
+  - Random slope model: `(0 + x | id)`
+  
+  - Random slope and intercept model: `(1 + x | id)` or just `(x | id)`
+
+
+---
+## Linear Mixed Models - model fit
+
+Modeling **individual means** with random intercept
+
+
+```r
+mm1 &lt;- lmer(Weight ~ Time + Evit + Cu +
+              (1|Pig), data=dietox)
+```
+```
+summary(mm1)
+```
+
+---
+**summary(mm1)**
+
+.tiny[
+
+```
+&gt; Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+&gt; Formula: Weight ~ Time + Evit + Cu + (1 | Pig)
+&gt;    Data: dietox
+&gt; 
+&gt; REML criterion at convergence: 4793
+&gt; 
+&gt; Scaled residuals: 
+&gt;    Min     1Q Median     3Q    Max 
+&gt; -4.716 -0.562 -0.087  0.489  4.767 
+&gt; 
+&gt; Random effects:
+&gt;  Groups   Name        Variance Std.Dev.
+&gt;  Pig      (Intercept) 39.7     6.30    
+&gt;  Residual             11.4     3.37    
+&gt; Number of obs: 861, groups:  Pig, 72
+&gt; 
+&gt; Fixed effects:
+&gt;             Estimate Std. Error       df t value Pr(&gt;|t|)    
+&gt; (Intercept)  15.0984     1.7530  69.0854    8.61  1.5e-12 ***
+&gt; Time          6.9425     0.0334 788.0328  207.94  &lt; 2e-16 ***
+&gt; EvitEvit100   2.0413     1.8613  67.0033    1.10     0.28    
+&gt; EvitEvit200  -1.1103     1.8429  66.9972   -0.60     0.55    
+&gt; CuCu035      -0.7651     1.8430  67.0046   -0.42     0.68    
+&gt; CuCu175       1.7871     1.8614  67.0101    0.96     0.34    
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; Correlation of Fixed Effects:
+&gt;             (Intr) Time   EvE100 EvE200 CuC035
+&gt; Time        -0.123                            
+&gt; EvitEvit100 -0.558  0.001                     
+&gt; EvitEvit200 -0.556  0.000  0.516              
+&gt; CuCu035     -0.556 -0.001  0.022  0.002       
+&gt; CuCu175     -0.558  0.000  0.022  0.022  0.516
+```
+]
+
+---
+## Linear Mixed Models - model fit
+
+
+```r
+broom.mixed::glance(mm1)
+```
+
+```
+&gt; # A tibble: 1 x 6
+&gt;   sigma logLik   AIC   BIC REMLcrit df.residual
+&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+&gt; 1  3.37 -2396. 4809. 4847.    4793.         853
+```
+
+```r
+broom.mixed::tidy(mm1, conf.int = T)
+```
+
+```
+&gt; # A tibble: 8 x 10
+&gt;   effect group term  estimate std.error statistic    df
+&gt;   &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;
+&gt; 1 fixed  &lt;NA&gt;  (Int…   15.1      1.75       8.61   69.1
+&gt; 2 fixed  &lt;NA&gt;  Time     6.94     0.0334   208.    788. 
+&gt; 3 fixed  &lt;NA&gt;  Evit…    2.04     1.86       1.10   67.0
+&gt; 4 fixed  &lt;NA&gt;  Evit…   -1.11     1.84      -0.602  67.0
+&gt; 5 fixed  &lt;NA&gt;  CuCu…   -0.765    1.84      -0.415  67.0
+&gt; # … with 3 more rows, and 3 more variables: p.value &lt;dbl&gt;,
+&gt; #   conf.low &lt;dbl&gt;, conf.high &lt;dbl&gt;
+```
+
+---
+## Linear Mixed Models - model fit
+
+Modeling **individual means** with random intercept
+
+
+```r
+mm2 &lt;- lmer(Weight ~ Time + Evit + Cu +
+              (1+Time|Pig), data=dietox)
+```
+```
+summary(mm2)
+```
+
+---
+## LMM - testing fixed-effects
+
+Use ML estimates, i.e. **REML = FALSE**
+
+
+```r
+fix1 &lt;- lmer(Weight ~ Time + Evit + Cu +
+              (1|Pig), data=dietox, REML = F)
+fix2 &lt;- lmer(Weight ~ Time + Evit +
+              (1|Pig), data=dietox, REML = F)
+
+anova(fix1, fix2, refit = FALSE)
+```
+
+```
+&gt; Data: dietox
+&gt; Models:
+&gt; fix2: Weight ~ Time + Evit + (1 | Pig)
+&gt; fix1: Weight ~ Time + Evit + Cu + (1 | Pig)
+&gt;      Df  AIC  BIC logLik deviance Chisq Chi Df Pr(&gt;Chisq)
+&gt; fix2  6 4815 4843  -2401     4803                        
+&gt; fix1  8 4816 4855  -2400     4800  2.17      2       0.34
+```
+
+---
+## LMM - testing random-effects
+
+Use ML estimates, i.e. **REML = TRUE**
+
+
+```r
+rd1 &lt;- lmer(Weight ~ Time + Evit +
+              (1|Pig), data=dietox, REML = T)
+rd2 &lt;- lmer(Weight ~ Time + Evit +
+              (1 + Time|Pig), data=dietox, REML = T)
+
+anova(rd1, rd2, refit = FALSE)
+```
+
+```
+&gt; Data: dietox
+&gt; Models:
+&gt; rd1: Weight ~ Time + Evit + (1 | Pig)
+&gt; rd2: Weight ~ Time + Evit + (1 + Time | Pig)
+&gt;     Df  AIC  BIC logLik deviance Chisq Chi Df Pr(&gt;Chisq)    
+&gt; rd1  6 4813 4841  -2400     4801                            
+&gt; rd2  8 4444 4482  -2214     4428   372      2     &lt;2e-16 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+## LMM - testing random-effects
+
+Except when testing if **ANY** random-effect is necessary
+
+
+```r
+rd1 &lt;- lmer(Weight ~ Time + Evit +
+              (1|Pig), data=dietox, REML = F)
+rd2 &lt;- lm(Weight ~ Time + Evit, data=dietox)
+
+dev1 &lt;- -2*logLik(rd1)
+dev0 &lt;- -2*logLik(rd2)
+devdiff &lt;- as.numeric(dev0-dev1); devdiff
+```
+
+```
+&gt; [1] 999
+```
+
+```r
+dfdiff &lt;- attr(dev1,"df") - attr(dev0,"df"); dfdiff
+```
+
+```
+&gt; [1] 1
+```
+
+```r
+cat('Chi-square =', devdiff, '(df=', dfdiff,'), p =', 
+  pchisq(devdiff, dfdiff, lower.tail=FALSE))
+```
+
+```
+&gt; Chi-square = 999 (df= 1 ), p = 2.35e-219
+```
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

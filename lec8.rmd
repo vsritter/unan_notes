@@ -1,0 +1,246 @@
+---
+title: "Biostatistics Module"
+subtitle: "R Lab"
+author: "Victor Ritter"
+institute: "UNC-CH"
+date: "Jan 2020"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      beforeInit: "macros.js"
+      # highlightStyle: github
+      # highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = ">",
+                      cache = TRUE,
+                      cache.path = "./cache/")
+options(htmltools.dir.version = FALSE,
+        dplyr.width = 60,
+        dplyr.print_min = 5,
+        dplyr.print_max = 5)
+
+library(tidyverse)
+```
+
+class: center, middle, inverse
+# Part I
+# Generalized Linear Models
+
+---
+## GLMs in R
+
+- Most GLMs can be fit without the need of additional packages
+
+- **`glm(y ~ x, family = <distribution>(<link function>))`**
+  - binomial(link = "logit")
+  - gaussian(link = "identity")
+  - Gamma(link = "inverse")
+  - inverse.gaussian(link = "1/mu^2")
+  - poisson(link = "log")
+  - quasi(link = "identity", variance = "constant")
+  - quasibinomial(link = "logit")
+  - quasipoisson(link = "log")
+
+.center[![:scale 70%](./images/link.png)]
+
+???
+can be usefull cloglog is useful when we have too many zeros
+
+---
+## GLMs in R
+
+- Cases not in R base
+
+  - Negative binomial - **`MASS`** package
+   
+  - Zero-truncated Poisson and NB - **`VGAM`** package
+  
+  - Zero-inflated Poisson and NB - **`pscl`** package
+
+--
+
+## Data
+
+(Wellknown) Horseshoe Crabs and satellites study: female horseshoe crab in the study had a male crab attached to her in her nest. The study investigated factors that affect whether the female crab had any other males, called satellites, residing near her
+
+- There are 173 females in this study
+  - female crab’s color
+  - spine condition
+  - weight
+  - carapace width
+  - number of satellites
+
+---
+## Data
+
+```{r, fig.width=7, fig.height=3.5, fig.align='center'}
+crabs <- readxl::read_xlsx("./data/crabs.xlsx"); crabs
+hist(crabs$satellites)
+```
+
+---
+## Model fitting
+
+```{r}
+fit <- glm(satellites ~ weight,
+           family = poisson(link = "log"), data = crabs)
+summary(fit)
+```
+
+---
+## Model fitting
+
+- the wider the female crab, the greater expected number of male satellites
+
+- $e^{0.164} \approx$ `r round(exp(0.164), 2)`. For one unit of increase in the width, the number of satellites will increase by a factor of 1.18 (or increase 18%)
+
+### Deviance GOF
+
+```{r}
+1 - pchisq(fit$deviance, fit$df.residual)
+```
+
+- The lack of fit maybe due to missing data, covariates or overdispersion
+
+---
+## Model fitting - overdispersion
+
+For Poisson, dispertion parameter should be 1
+
+```{r}
+fit$deviance/fit$df.residual
+```
+
+- Hence, variance is almost three times the mean
+
+--
+
+Again, we can use a more flaxible approach
+
+```{r}
+fit2 <- glm(satellites ~ weight,
+           family = quasipoisson(link = "log"), data = crabs)
+```
+
+---
+## Model fitting - overdispersion
+
+```{r}
+summary(fit2)
+```
+
+---
+## Model fitting - overdispersion
+
+If we want to stay on the likelihood paradim, we can try NB
+
+```{r}
+fit_nb <- glm.nb(satellites ~ weight, data = crabs)
+summary(fit_nb)
+```
+
+---
+## Model fitting - overdispersion
+
+LR test for overdispersion (NB model is a Poisson model with Gamma errors)
+
+```{r}
+x2 <- -2*(logLik(fit)-logLik(fit_nb)); x2
+.5*(1 - pchisq(as.numeric(x2), df = 1)) #50:50 chisq
+pscl::odTest(fit_nb)
+```
+
+Did it help?
+
+```{r}
+1 - pchisq(fit_nb$deviance, fit_nb$df.residual)
+```
+
+???
+.5*P(X0 > T) + .5*P(X1 > T)
+
+---
+## Modeling the rate
+
+For grouped data, we can model the rate $\lambda_i$ using an *offset* term
+
+$$\log(\lambda_i) = \boldsymbol{X \beta} \\
+\log(\mu_i/n_i) = \boldsymbol{X \beta} \\
+\log(\mu_i) = \log(n_i) + \boldsymbol{X \beta}$$
+
+```{r}
+crabs_gr <- crabs %>% 
+  mutate_at(vars(color, spine_condition), as.factor) %>% 
+  group_by(color, spine_condition) %>% 
+  summarise(satellites = sum(satellites),
+            log_n = log(n())) %>% 
+  ungroup()
+```
+
+---
+## Modeling the rate
+
+```{r}
+crabs_gr %>% print(n = 12)
+fit_gr <- glm(satellites ~ color + spine_condition, 
+              offset = log_n, family = poisson(), data = crabs_gr)
+```
+
+---
+## Modeling the rate
+
+```{r}
+summary(fit_gr)
+```
+
+---
+## Modeling the rate
+
+```{r}
+anova(fit_gr, test = "Rao")
+```
+
+---
+## Modeling the rate
+
+```{r}
+coef <- broom::tidy(fit_gr, exponentiate = T, conf.int = T)
+coef[,1:5]
+coef[,c(1, 6:7)]
+```
+
+---
+## Models for skewed data
+
+- Positive continuous data: **family = gamma/inverse.gaussian**
+
+- Positive continuous data with exact zeros: **family=tweedie** using package **statmod**
+
+--
+
+- Example: hospital length-of-stay (time in general)
+
+```{r, fig.width=7, fig.height=3.5, fig.align='center'}
+library(NHSRdatasets)
+ggplot(LOS_model, aes(x = LOS)) +
+  geom_histogram(bins = 20, fill = "lightblue", col = 1)
+```
+
+---
+## Models for skewed data
+
+```{r, fig.width=7, fig.height=3.5, fig.align='center'}
+ggplot(LOS_model, aes(x = log(LOS))) +
+  geom_histogram(bins = 20, fill = "lightblue", col = 1)
+
+
+
+
+
+
+

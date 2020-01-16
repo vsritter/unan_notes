@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>NEEDBios</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Victor Ritter" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# NEEDBios
+## R Lab
+### Victor Ritter
+### UNC-CH
+### Jan 2020
+
+---
+
+
+
+
+class: center, middle, inverse
+# Part I
+# Linear models
+
+---
+## Data
+
+.center[![](./images/intro_stats.png)]
+
+---
+## Data
+
+
+```r
+advertising &lt;- read.csv("./data/Advertising.csv")[,-1]
+head(advertising)
+```
+
+```
+&gt;      TV radio newspaper sales
+&gt; 1 230.1  37.8      69.2  22.1
+&gt; 2  44.5  39.3      45.1  10.4
+&gt; 3  17.2  45.9      69.3   9.3
+&gt; 4 151.5  41.3      58.5  18.5
+&gt; 5 180.8  10.8      58.4  12.9
+&gt; 6   8.7  48.9      75.0   7.2
+```
+
+Data contains, in thousands of dollars, TV, Radio, and Newspaper budgets for 200 different markets along with the Sales, in thousands of units, for each market.
+
+
+```r
+set.seed(123)
+sample &lt;- sample(c(TRUE, FALSE), nrow(advertising),
+                 replace = T, prob = c(0.6,0.4))
+train &lt;- advertising[sample,]
+test &lt;- advertising[!sample,]
+```
+
+---
+## Data
+
+
+```r
+ggplot(train, aes(x = TV, y = sales)) +
+  geom_point() +
+  geom_smooth(se = FALSE, method = "loess")
+```
+
+&lt;img src="lec4_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Initial model
+
+
+```r
+model1 &lt;- lm(sales ~ TV, data = train)
+summary(model1)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; lm(formula = sales ~ TV, data = train)
+&gt; 
+&gt; Residuals:
+&gt;     Min      1Q  Median      3Q     Max 
+&gt; -8.5816 -1.7845 -0.2533  2.1715  6.9345 
+&gt; 
+&gt; Coefficients:
+&gt;             Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; (Intercept) 6.764098   0.607592   11.13   &lt;2e-16 ***
+&gt; TV          0.050284   0.003463   14.52   &lt;2e-16 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; Residual standard error: 3.204 on 120 degrees of freedom
+&gt; Multiple R-squared:  0.6373,	Adjusted R-squared:  0.6342 
+&gt; F-statistic: 210.8 on 1 and 120 DF,  p-value: &lt; 2.2e-16
+```
+
+---
+## Initial model
+
+
+```r
+library(broom)
+```
+
+
+```r
+glance(model1)
+```
+
+```
+&gt; # A tibble: 1 x 11
+&gt;   r.squared adj.r.squared sigma statistic  p.value    df
+&gt;       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
+&gt; 1     0.637         0.634  3.20      211. 3.41e-28     2
+&gt; # … with 5 more variables: logLik &lt;dbl&gt;, AIC &lt;dbl&gt;,
+&gt; #   BIC &lt;dbl&gt;, deviance &lt;dbl&gt;, df.residual &lt;int&gt;
+```
+
+--
+ 
+## Accessing coefficients
+
+
+```r
+broom::tidy(model1)
+```
+
+```
+&gt; # A tibble: 2 x 5
+&gt;   term        estimate std.error statistic  p.value
+&gt;   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+&gt; 1 (Intercept)   6.76     0.608        11.1 3.31e-20
+&gt; 2 TV            0.0503   0.00346      14.5 3.41e-28
+```
+
+---
+## Accessing coefficients
+
+
+```r
+coef(model1)
+```
+
+```
+&gt; (Intercept)          TV 
+&gt;  6.76409784  0.05028368
+```
+
+```r
+confint(model1)
+```
+
+```
+&gt;                  2.5 %     97.5 %
+&gt; (Intercept) 5.56110868 7.96708701
+&gt; TV          0.04342678 0.05714057
+```
+
+---
+## Coefficient of determination
+
+.center[![](./images/rsquare.png)]
+
+- `\(R^2\)` does not indicate whether:
+  - the independent variables are a cause of the changes in the dependent variable
+  - omitted-variable bias exists
+  - the correct regression was used
+  - the most appropriate set of independent variables has been chosen
+  - there is collinearity present in the data on the explanatory variables
+  - the model might be improved by using transformed versions of the existing set of independent variables
+  - there are enough data points to make a solid conclusion
+
+---
+## Accessing model fit
+
+
+```r
+ggplot(train, aes(x = TV, y = sales)) +
+  geom_point() +
+  geom_smooth(se = FALSE, method = "loess") +
+  geom_smooth(se = FALSE, method = "lm", color = "red")
+```
+
+&lt;img src="lec4_files/figure-html/unnamed-chunk-9-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+## Accessing model fit
+
+
+```r
+ggplot(train, aes(x = TV, y = sales)) +
+  geom_point() +
+  geom_smooth(se = FALSE, method = "loess") +
+  geom_smooth(se = FALSE, method = "lm", color = "red")
+```
+
+&lt;img src="lec4_files/figure-html/unnamed-chunk-10-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Accessing model fit
+
+
+```r
+# add model diagnostics to our training data
+model1_results &lt;- augment(model1, train)
+
+ggplot(model1_results, aes(.fitted, .std.resid)) +
+  geom_hline(yintercept = 0) +
+  geom_point() + geom_smooth(se = FALSE) +
+  theme_bw(base_size = 20)
+```
+
+&lt;img src="lec4_files/figure-html/unnamed-chunk-11-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Accessing model fit
+
+
+```r
+ggplot(model1_results, aes(sample = .resid)) + 
+  stat_qq() + stat_qq_line() +
+  theme_bw(base_size = 20)
+```
+
+&lt;img src="lec4_files/figure-html/unnamed-chunk-12-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Accessing model fit
+
+
+```r
+ggplot(model1_results, aes(seq_along(.cooksd), .cooksd)) +
+  geom_bar(stat = "identity", position = "identity") +
+  theme_bw(base_size = 20)
+```
+
+&lt;img src="lec4_files/figure-html/unnamed-chunk-13-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+Outliers (on the space of covariatesp)
+
+
+---
+## Accessing model fit
+
+
+```r
+ggplot(model1_results, aes(.hat, .std.resid)) +
+  geom_point(aes(size = .cooksd), na.rm = TRUE)+
+  theme_bw(base_size = 20)
+```
+
+&lt;img src="lec4_files/figure-html/unnamed-chunk-14-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+Influential on the regression line
+
+---
+## Multiple regression
+
+
+```r
+model2 &lt;- lm(sales ~ TV + radio + newspaper, data = train)
+summary(model2)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; lm(formula = sales ~ TV + radio + newspaper, data = train)
+&gt; 
+&gt; Residuals:
+&gt;     Min      1Q  Median      3Q     Max 
+&gt; -4.8426 -0.6466  0.2165  1.0640  2.6804 
+&gt; 
+&gt; Coefficients:
+&gt;              Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; (Intercept)  2.822206   0.369369   7.641 6.29e-12 ***
+&gt; TV           0.047362   0.001657  28.577  &lt; 2e-16 ***
+&gt; radio        0.196375   0.010347  18.979  &lt; 2e-16 ***
+&gt; newspaper   -0.010593   0.006460  -1.640    0.104    
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; Residual standard error: 1.527 on 118 degrees of freedom
+&gt; Multiple R-squared:  0.9189,	Adjusted R-squared:  0.9169 
+&gt; F-statistic: 445.9 on 3 and 118 DF,  p-value: &lt; 2.2e-16
+```
+
+---
+## Multiple regression - with interaction
+
+
+```r
+model3 &lt;- lm(sales ~ TV * radio, data = train)
+summary(model3)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; lm(formula = sales ~ TV * radio, data = train)
+&gt; 
+&gt; Residuals:
+&gt;     Min      1Q  Median      3Q     Max 
+&gt; -3.8836 -0.3691  0.1558  0.5793  1.2283 
+&gt; 
+&gt; Coefficients:
+&gt;              Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; (Intercept) 6.497e+00  3.079e-01  21.103  &lt; 2e-16 ***
+&gt; TV          2.079e-02  1.875e-03  11.086  &lt; 2e-16 ***
+&gt; radio       3.903e-02  1.059e-02   3.687 0.000344 ***
+&gt; TV:radio    1.014e-03  6.208e-05  16.336  &lt; 2e-16 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; Residual standard error: 0.8553 on 118 degrees of freedom
+&gt; Multiple R-squared:  0.9746,	Adjusted R-squared:  0.9739 
+&gt; F-statistic:  1508 on 3 and 118 DF,  p-value: &lt; 2.2e-16
+```
+
+---
+## Comparing models
+
+
+```r
+anova(model1, model2)
+```
+
+```
+&gt; Analysis of Variance Table
+&gt; 
+&gt; Model 1: sales ~ TV
+&gt; Model 2: sales ~ TV + radio + newspaper
+&gt;   Res.Df    RSS Df Sum of Sq      F    Pr(&gt;F)    
+&gt; 1    120 1232.0                                  
+&gt; 2    118  275.3  2    956.67 205.02 &lt; 2.2e-16 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+## Comparing models
+
+
+```r
+list(model1 = broom::glance(model1), 
+     model2 = broom::glance(model2))
+```
+
+```
+&gt; $model1
+&gt; # A tibble: 1 x 11
+&gt;   r.squared adj.r.squared sigma statistic  p.value    df
+&gt;       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
+&gt; 1     0.637         0.634  3.20      211. 3.41e-28     2
+&gt; # … with 5 more variables: logLik &lt;dbl&gt;, AIC &lt;dbl&gt;,
+&gt; #   BIC &lt;dbl&gt;, deviance &lt;dbl&gt;, df.residual &lt;int&gt;
+&gt; 
+&gt; $model2
+&gt; # A tibble: 1 x 11
+&gt;   r.squared adj.r.squared sigma statistic  p.value    df
+&gt;       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
+&gt; 1     0.919         0.917  1.53      446. 3.49e-64     4
+&gt; # … with 5 more variables: logLik &lt;dbl&gt;, AIC &lt;dbl&gt;,
+&gt; #   BIC &lt;dbl&gt;, deviance &lt;dbl&gt;, df.residual &lt;int&gt;
+```
+
+---
+## Comparing models
+
+
+```r
+fit &lt;- list(model1 = broom::glance(model1), 
+     model2 = broom::glance(model2)) %&gt;% 
+  bind_rows()
+select(fit, 1:5)
+```
+
+```
+&gt; # A tibble: 2 x 5
+&gt;   r.squared adj.r.squared sigma statistic  p.value
+&gt;       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+&gt; 1     0.637         0.634  3.20      211. 3.41e-28
+&gt; 2     0.919         0.917  1.53      446. 3.49e-64
+```
+
+```r
+select(fit, 6:11)
+```
+
+```
+&gt; # A tibble: 2 x 6
+&gt;      df logLik   AIC   BIC deviance df.residual
+&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
+&gt; 1     2  -314.  634.  643.    1232.         120
+&gt; 2     4  -223.  456.  470.     275.         118
+```
+
+---
+## Comparing models
+
+- `\(R^2\)`: Model 2’s `\(R^2=.92\)` is substantially higher than model 1 suggesting that model 2 does a better job explaining the variance in sales
+
+- **The adjusted** `\(R^2\)` is a modified version of `\(R^2\)` that has been adjusted for the number of predictors in the model. The adjusted `\(R^2\)` increases only if the new term improves the model more than would be expected by chance
+
+- **RSE:** Model 2’s RSE (`sigma`) is lower than model 1. This shows that model 2 reduces the residual variance
+
+- **F-statistic:** (`statistic`) in model 2 is larger than model 1. Here larger is better and suggests that model 2 provides a better “goodness-of-fit”
+
+- **Other:** We can also use other various statistics to compare the quality of our models. These include Akaike information criterion (AIC) and Bayesian information criterion (BIC). The lower AIC and BIC the better
+
+---
+## Comparing models
+
+```
+model1_results &lt;- mutate(model1_results, model = "Model 1")
+
+# Add resiuals analysis for model 2
+model2_results &lt;- augment(model2, train) %&gt;%
+  mutate(model = "Model 2") %&gt;%
+  rbind(model1_results)
+
+# Add resiuals analysis for model 2
+model3_results &lt;- augment(model3, train) %&gt;%
+  mutate(model = "Model 3") %&gt;%
+  rbind(model2_results)
+
+# Diagnostic plot
+ggplot(model3_results, aes(.fitted, .std.resid)) +
+  geom_hline(yintercept = 0) +
+  geom_point() + geom_smooth(se = FALSE) +
+  facet_wrap(~ model) +
+  theme_bw(base_size = 20)
+```
+
+---
+## Comparing models
+
+&lt;img src="lec4_files/figure-html/unnamed-chunk-20-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Making predictions
+
+
+```r
+# test MSE
+test %&gt;% 
+  add_predictions(model1) %&gt;% 
+  head()
+```
+
+```
+&gt;       TV radio newspaper sales      pred
+&gt; 2   44.5  39.3      45.1  10.4  9.001721
+&gt; 4  151.5  41.3      58.5  18.5 14.382075
+&gt; 5  180.8  10.8      58.4  12.9 15.855386
+&gt; 8  120.2  19.6      11.6  13.2 12.808196
+&gt; 11  66.1   5.8      24.2   8.6 10.087849
+&gt; 13  23.8  35.1      65.9   9.2  7.960849
+```
+
+```r
+test %&gt;%
+  gather_predictions(model1, model2, model3) %&gt;%
+  group_by(model) %&gt;%
+  summarise(MSE = mean((sales - pred)^2))
+```
+
+```
+&gt; # A tibble: 3 x 2
+&gt;   model    MSE
+&gt;   &lt;chr&gt;  &lt;dbl&gt;
+&gt; 1 model1 11.3 
+&gt; 2 model2  3.75
+&gt; 3 model3  1.15
+```
+
+
+---
+## (multi)colinearity
+
+```r
+library(GGally)
+ggpairs(train)
+```
+
+&lt;img src="lec4_files/figure-html/unnamed-chunk-22-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+possible for collinear-ity to exist between three or more variables. aka multicollinearity.
+
+---
+## (multi)colinearity
+
+`$$VIF_j = \frac{\mathrm{var}(\hat{\beta}_j)_{full}}{\mathrm{var}(\hat{\beta}_j)_{x_j}} = \frac{1}{1-\hat{R}_j}$$`
+
+- VIFs exceeding 4 warrant further investigation
+- VIFs exceeding 10 are signs of serious multicollinearity requiring correction.
+
+
+```r
+car::vif(model2)
+```
+
+```
+&gt;        TV     radio newspaper 
+&gt;  1.007778  1.227387  1.218801
+```
+
+```r
+DescTools::VIF(model2)
+```
+
+```
+&gt;        TV     radio newspaper 
+&gt;  1.007778  1.227387  1.218801
+```
+
+
+---
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

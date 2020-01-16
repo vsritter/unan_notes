@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>Biostatistics Module</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Victor Ritter" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Biostatistics Module
+## R Lab
+### Victor Ritter
+### UNC-CH
+### Jan 2020
+
+---
+
+
+
+
+class: center, middle, inverse
+# Part I
+# Logistic Regression
+
+---
+## Data
+
+- Analysis based on the Coursera course “Introduction to Logistic Regression” by Prof. Stanley Lemeshow (OSU-USA)
+
+- _Applied Logistic Regression_ by Hosmer &amp; Lemeshow (2013)
+
+--
+
+- Low birth weight study data aiming to identify risk factors associated with giving birth to a low birth weight baby in the population being served by the medical centre where the data were collected.
+
+- We'll be restricted to
+  - `LOW`: Low Birth Weight (1=Birth Weight &lt; 2.5kg; 0=otherwise)
+  - `AGE`: moms age
+  - `LWT`: baby weight at last menstrual period
+  - `RACE`: mom's race (1 = White, 2 = Black, 3 = Other)
+
+???
+
+Ohio State Uni. College of PH
+
+---
+## Data - descriptive analysis
+
+
+```r
+LOWBWT = read.table("./data/LOWBWT.txt", header = TRUE) %&gt;% 
+  mutate_at(vars(LOW, RACE), as.factor)
+fq &lt;- LOWBWT %&gt;% {
+  table(.$LOW, .$RACE)
+}
+margin.table(fq, 1)
+```
+
+```
+&gt; 
+&gt;   0   1 
+&gt; 130  59
+```
+
+```r
+prop.table(fq, margin = 1)
+```
+
+```
+&gt;    
+&gt;             1         2         3
+&gt;   0 0.5615385 0.1153846 0.3230769
+&gt;   1 0.3898305 0.1864407 0.4237288
+```
+
+---
+## Data - descriptive analysis
+
+
+```r
+# Overlaid histograms
+ggplot(LOWBWT, aes(x = AGE, fill = LOW)) +
+  geom_density(alpha=.5)
+```
+
+&lt;img src="lec7_files/figure-html/unnamed-chunk-2-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Data - descriptive analysis
+
+
+```r
+ggplot(LOWBWT, aes(x = LWT, fill = LOW)) +
+  geom_density(alpha=.5)
+```
+
+&lt;img src="lec7_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Model - fit
+
+
+```r
+fit = glm(LOW ~ AGE + LWT + RACE,
+          family = binomial(link = "logit"), data = LOWBWT)
+fit
+```
+
+```
+&gt; 
+&gt; Call:  glm(formula = LOW ~ AGE + LWT + RACE, family = binomial(link = "logit"), 
+&gt;     data = LOWBWT)
+&gt; 
+&gt; Coefficients:
+&gt; (Intercept)          AGE          LWT        RACE2        RACE3  
+&gt;     1.30674     -0.02552     -0.01435      1.00382      0.44346  
+&gt; 
+&gt; Degrees of Freedom: 188 Total (i.e. Null);  184 Residual
+&gt; Null Deviance:	    234.7 
+&gt; Residual Deviance: 222.7 	AIC: 232.7
+```
+
+---
+## Model - fit
+
+
+```r
+summary(fit)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; glm(formula = LOW ~ AGE + LWT + RACE, family = binomial(link = "logit"), 
+&gt;     data = LOWBWT)
+&gt; 
+&gt; Deviance Residuals: 
+&gt;     Min       1Q   Median       3Q      Max  
+&gt; -1.4052  -0.8946  -0.7209   1.2484   2.0982  
+&gt; 
+&gt; Coefficients:
+&gt;              Estimate Std. Error z value Pr(&gt;|z|)  
+&gt; (Intercept)  1.306741   1.069786   1.221   0.2219  
+&gt; AGE         -0.025524   0.033252  -0.768   0.4427  
+&gt; LWT         -0.014353   0.006523  -2.200   0.0278 *
+&gt; RACE2        1.003822   0.498014   2.016   0.0438 *
+&gt; RACE3        0.443461   0.360257   1.231   0.2183  
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; (Dispersion parameter for binomial family taken to be 1)
+&gt; 
+&gt;     Null deviance: 234.67  on 188  degrees of freedom
+&gt; Residual deviance: 222.66  on 184  degrees of freedom
+&gt; AIC: 232.66
+&gt; 
+&gt; Number of Fisher Scoring iterations: 4
+```
+
+---
+## Model - analysis of deviance table
+
+
+```r
+anova(fit, test = "Chisq")
+```
+
+```
+&gt; Analysis of Deviance Table
+&gt; 
+&gt; Model: binomial, link: logit
+&gt; 
+&gt; Response: LOW
+&gt; 
+&gt; Terms added sequentially (first to last)
+&gt; 
+&gt; 
+&gt;      Df Deviance Resid. Df Resid. Dev Pr(&gt;Chi)  
+&gt; NULL                   188     234.67           
+&gt; AGE   1   2.7600       187     231.91  0.09665 .
+&gt; LWT   1   4.7886       186     227.12  0.02865 *
+&gt; RACE  2   4.4628       184     222.66  0.10738  
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+## Model - analysis of deviance table
+
+
+```r
+car::Anova(fit)
+```
+
+```
+&gt; Registered S3 methods overwritten by 'car':
+&gt;   method                          from
+&gt;   influence.merMod                lme4
+&gt;   cooks.distance.influence.merMod lme4
+&gt;   dfbeta.influence.merMod         lme4
+&gt;   dfbetas.influence.merMod        lme4
+```
+
+```
+&gt; Analysis of Deviance Table (Type II tests)
+&gt; 
+&gt; Response: LOW
+&gt;      LR Chisq Df Pr(&gt;Chisq)  
+&gt; AGE    0.5985  1    0.43917  
+&gt; LWT    5.4669  1    0.01938 *
+&gt; RACE   4.4628  2    0.10738  
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+## Model - analysis of deviance table
+
+
+```r
+fit1 &lt;- update(fit, . ~ AGE + LWT * RACE)
+anova(fit1, fit, test = "LR")
+```
+
+```
+&gt; Analysis of Deviance Table
+&gt; 
+&gt; Model 1: LOW ~ AGE + LWT + RACE + LWT:RACE
+&gt; Model 2: LOW ~ AGE + LWT + RACE
+&gt;   Resid. Df Resid. Dev Df Deviance Pr(&gt;Chi)
+&gt; 1       182     221.37                     
+&gt; 2       184     222.66 -2  -1.2872   0.5254
+```
+
+---
+## Model - goodness-of-fit
+
+- Classic GOF statistics
+
+
+```r
+# Deviance
+g2 &lt;- sum(residuals(fit, type = "deviance")^2)
+g2
+```
+
+```
+&gt; [1] 222.6606
+```
+
+```r
+1 - pchisq(g2, df = fit$df.residual)
+```
+
+```
+&gt; [1] 0.02720957
+```
+
+```r
+# Person 
+p &lt;- sum(residuals(fit, type = "pearson")^2)
+p
+```
+
+```
+&gt; [1] 187.6171
+```
+
+```r
+1 - pchisq(p, df = fit$df.residual)
+```
+
+```
+&gt; [1] 0.4121418
+```
+
+---
+## Model - goodness-of-fit
+
+- Hosmer-Lemeshow test
+
+
+```r
+library(ResourceSelection) 
+hoslem.test(fit$y, fitted(fit), g = 10)
+```
+
+```
+&gt; 
+&gt; 	Hosmer and Lemeshow goodness of fit (GOF) test
+&gt; 
+&gt; data:  fit$y, fitted(fit)
+&gt; X-squared = 5.8259, df = 8, p-value = 0.6667
+```
+
+---
+## Model - overdispersion
+
+
+```r
+summary(update(fit, . ~ ., family = quasibinomial))
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; glm(formula = LOW ~ AGE + LWT + RACE, family = quasibinomial, 
+&gt;     data = LOWBWT)
+&gt; 
+&gt; Deviance Residuals: 
+&gt;     Min       1Q   Median       3Q      Max  
+&gt; -1.4052  -0.8946  -0.7209   1.2484   2.0982  
+&gt; 
+&gt; Coefficients:
+&gt;              Estimate Std. Error t value Pr(&gt;|t|)  
+&gt; (Intercept)  1.306741   1.080250   1.210   0.2280  
+&gt; AGE         -0.025524   0.033577  -0.760   0.4481  
+&gt; LWT         -0.014353   0.006587  -2.179   0.0306 *
+&gt; RACE2        1.003822   0.502886   1.996   0.0474 *
+&gt; RACE3        0.443461   0.363781   1.219   0.2244  
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; (Dispersion parameter for quasibinomial family taken to be 1.019658)
+&gt; 
+&gt;     Null deviance: 234.67  on 188  degrees of freedom
+&gt; Residual deviance: 222.66  on 184  degrees of freedom
+&gt; AIC: NA
+&gt; 
+&gt; Number of Fisher Scoring iterations: 4
+```
+
+---
+## Model - residuals
+
+
+```r
+library(broom)
+fit_resid &lt;- augment(fit) %&gt;% 
+  mutate(index = 1:n())
+fit_resid
+```
+
+```
+&gt; # A tibble: 189 x 12
+&gt;   LOW     AGE   LWT RACE  .fitted .se.fit .resid   .hat
+&gt;   &lt;fct&gt; &lt;int&gt; &lt;int&gt; &lt;fct&gt;   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+&gt; 1 1        28   120 3      -0.687   0.321   1.48 0.0230
+&gt; 2 1        29   130 1      -1.30    0.298   1.76 0.0150
+&gt; 3 1        34   187 2      -1.24    0.627   1.73 0.0684
+&gt; 4 1        25   105 3      -0.395   0.289   1.35 0.0201
+&gt; 5 1        25    85 3      -0.108   0.354   1.22 0.0312
+&gt; # ... with 184 more rows, and 4 more variables:
+&gt; #   .sigma &lt;dbl&gt;, .cooksd &lt;dbl&gt;, .std.resid &lt;dbl&gt;,
+&gt; #   index &lt;int&gt;
+```
+
+---
+## Model - residuals
+
+
+```r
+ggplot(fit_resid, aes(index, .std.resid, color = LOW)) + 
+  geom_point(size = 2)
+```
+
+&lt;img src="lec7_files/figure-html/unnamed-chunk-13-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+Those standardized residuals that exceed 3 represent possible outliers and may deserve closer attention.
+
+---
+## Model - residuals
+
+
+```r
+ggplot(fit_resid, aes(index, .std.resid)) + 
+  geom_point(size = 2) + facet_wrap(~ LOW, scales = "free")
+```
+
+&lt;img src="lec7_files/figure-html/unnamed-chunk-14-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Model - residuals
+
+
+```r
+ggplot(fit_resid, aes(x = .fitted, y = .cooksd,
+                      ymin = 0, ymax = .cooksd)) + 
+  geom_point(size = 2) + geom_linerange() +
+  geom_label(aes(x = .fitted, y = .cooksd, label = index),
+             data = top_n(fit_resid, 5, .cooksd))
+```
+
+&lt;img src="lec7_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Model - agreement
+
+
+```r
+pred &lt;- predict(fit, type = "response")
+pred[1:20]
+```
+
+```
+&gt;         1         2         3         4         5         6         7         8 
+&gt; 0.3347337 0.2142713 0.2242098 0.4025185 0.4730468 0.2512559 0.4429721 0.4652507 
+&gt;         9        10        11        12        13        14        15        16 
+&gt; 0.3192989 0.1683255 0.2655908 0.3812243 0.3685332 0.3718943 0.3425726 0.2047740 
+&gt;        17        18        19        20 
+&gt; 0.2504746 0.1779087 0.4343363 0.3648377
+```
+
+```r
+bin_pred &lt;- as.numeric(pred &gt; 0.5) %&gt;% factor()
+table(bin_pred, LOWBWT$LOW)
+```
+
+```
+&gt;         
+&gt; bin_pred   0   1
+&gt;        0 125  53
+&gt;        1   5   6
+```
+
+---
+## Model - agreement
+
+
+```r
+library(caret)
+confusionMatrix(data = bin_pred, reference = LOWBWT$LOW)
+```
+
+```
+&gt; Confusion Matrix and Statistics
+&gt; 
+&gt;           Reference
+&gt; Prediction   0   1
+&gt;          0 125  53
+&gt;          1   5   6
+&gt;                                          
+&gt;                Accuracy : 0.6931         
+&gt;                  95% CI : (0.6221, 0.758)
+&gt;     No Information Rate : 0.6878         
+&gt;     P-Value [Acc &gt; NIR] : 0.4726         
+&gt;                                          
+&gt;                   Kappa : 0.0813         
+&gt;                                          
+&gt;  Mcnemar's Test P-Value : 6.769e-10      
+&gt;                                          
+&gt;             Sensitivity : 0.9615         
+&gt;             Specificity : 0.1017         
+&gt;          Pos Pred Value : 0.7022         
+&gt;          Neg Pred Value : 0.5455         
+&gt;              Prevalence : 0.6878         
+&gt;          Detection Rate : 0.6614         
+&gt;    Detection Prevalence : 0.9418         
+&gt;       Balanced Accuracy : 0.5316         
+&gt;                                          
+&gt;        'Positive' Class : 0              
+&gt; 
+```
+
+---
+## Model - agreement
+
+
+```r
+library(pROC)
+roc &lt;- roc(LOWBWT$LOW ~ pred)
+```
+
+```
+&gt; Setting levels: control = 0, case = 1
+```
+
+```
+&gt; Setting direction: controls &lt; cases
+```
+
+```r
+roc
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; roc.formula(formula = LOWBWT$LOW ~ pred)
+&gt; 
+&gt; Data: pred in 130 controls (LOWBWT$LOW 0) &lt; 59 cases (LOWBWT$LOW 1).
+&gt; Area under the curve: 0.6533
+```
+
+---
+## Model - agreement
+
+
+```r
+plot(roc, print.auc = T)
+```
+
+&lt;img src="lec7_files/figure-html/unnamed-chunk-19-1.png" style="display: block; margin: auto;" /&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>NEEDBios</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Victor Ritter" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# NEEDBios
+## R Lab
+### Victor Ritter
+### UNC-CH
+### Jan 2020
+
+---
+
+
+
+
+class: center, middle, inverse
+# Part I
+# Generalized Linear Models
+
+---
+## GLMs in R
+
+- Most GLMs can be fit without the need of additional packages
+
+- **`glm(y ~ x, family = &lt;distribution&gt;(&lt;link function&gt;))`**
+  - binomial(link = "logit")
+  - gaussian(link = "identity")
+  - Gamma(link = "inverse")
+  - inverse.gaussian(link = "1/mu^2")
+  - poisson(link = "log")
+  - quasi(link = "identity", variance = "constant")
+  - quasibinomial(link = "logit")
+  - quasipoisson(link = "log")
+
+.center[![:scale 70%](./images/link.png)]
+
+???
+can be usefull cloglog is useful when we have too many zeros
+
+---
+## GLMs in R
+
+- Cases not in R base
+
+  - Negative binomial - **`MASS`** package
+   
+  - Zero-truncated Poisson and NB - **`VGAM`** package
+  
+  - Zero-inflated Poisson and NB - **`pscl`** package
+
+--
+
+## Data
+
+(Wellknown) Horseshoe Crabs and satellites study: female horseshoe crab in the study had a male crab attached to her in her nest. The study investigated factors that affect whether the female crab had any other males, called satellites, residing near her
+
+- There are 173 females in this study
+  - female crab’s color
+  - spine condition
+  - weight
+  - carapace width
+  - number of satellites
+
+---
+## Data
+
+
+```r
+crabs &lt;- readxl::read_xlsx("./data/crabs.xlsx"); crabs
+```
+
+```
+&gt; # A tibble: 173 x 5
+&gt;   color spine_condition weight carapace_width satellites
+&gt;   &lt;dbl&gt;           &lt;dbl&gt;  &lt;dbl&gt;          &lt;dbl&gt;      &lt;dbl&gt;
+&gt; 1     2               3   28.3           3.05          8
+&gt; 2     3               3   26             2.6           4
+&gt; 3     3               3   25.6           2.15          0
+&gt; 4     4               2   21             1.85          0
+&gt; 5     2               3   29             3             1
+&gt; # … with 168 more rows
+```
+
+```r
+hist(crabs$satellites)
+```
+
+&lt;img src="lec8_files/figure-html/unnamed-chunk-1-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Model fitting
+
+
+```r
+fit &lt;- glm(satellites ~ weight,
+           family = poisson(link = "log"), data = crabs)
+summary(fit)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; glm(formula = satellites ~ weight, family = poisson(link = "log"), 
+&gt;     data = crabs)
+&gt; 
+&gt; Deviance Residuals: 
+&gt;     Min       1Q   Median       3Q      Max  
+&gt; -2.8526  -1.9884  -0.4933   1.0970   4.9221  
+&gt; 
+&gt; Coefficients:
+&gt;             Estimate Std. Error z value Pr(&gt;|z|)    
+&gt; (Intercept) -3.30476    0.54224  -6.095  1.1e-09 ***
+&gt; weight       0.16405    0.01997   8.216  &lt; 2e-16 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; (Dispersion parameter for poisson family taken to be 1)
+&gt; 
+&gt;     Null deviance: 632.79  on 172  degrees of freedom
+&gt; Residual deviance: 567.88  on 171  degrees of freedom
+&gt; AIC: 927.18
+&gt; 
+&gt; Number of Fisher Scoring iterations: 6
+```
+
+---
+## Model fitting
+
+- the wider the female crab, the greater expected number of male satellites
+
+- `\(e^{0.164} \approx\)` 1.18. For one unit of increase in the width, the number of satellites will increase by a factor of 1.18 (or increase 18%)
+
+### Deviance GOF
+
+
+```r
+1 - pchisq(fit$deviance, fit$df.residual)
+```
+
+```
+&gt; [1] 0
+```
+
+- The lack of fit maybe due to missing data, covariates or overdispersion
+
+---
+## Model fitting - overdispersion
+
+For Poisson, dispertion parameter should be 1
+
+
+```r
+fit$deviance/fit$df.residual
+```
+
+```
+&gt; [1] 3.320927
+```
+
+- Hence, variance is almost three times the mean
+
+--
+
+Again, we can use a more flaxible approach
+
+
+```r
+fit2 &lt;- glm(satellites ~ weight,
+           family = quasipoisson(link = "log"), data = crabs)
+```
+
+---
+## Model fitting - overdispersion
+
+
+```r
+summary(fit2)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; glm(formula = satellites ~ weight, family = quasipoisson(link = "log"), 
+&gt;     data = crabs)
+&gt; 
+&gt; Deviance Residuals: 
+&gt;     Min       1Q   Median       3Q      Max  
+&gt; -2.8526  -1.9884  -0.4933   1.0970   4.9221  
+&gt; 
+&gt; Coefficients:
+&gt;             Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; (Intercept) -3.30476    0.96729  -3.417 0.000793 ***
+&gt; weight       0.16405    0.03562   4.606 7.99e-06 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; (Dispersion parameter for quasipoisson family taken to be 3.182205)
+&gt; 
+&gt;     Null deviance: 632.79  on 172  degrees of freedom
+&gt; Residual deviance: 567.88  on 171  degrees of freedom
+&gt; AIC: NA
+&gt; 
+&gt; Number of Fisher Scoring iterations: 6
+```
+
+---
+## Model fitting - overdispersion
+
+If we want to stay on the likelihood paradim, we can try NB
+
+
+```r
+fit_nb &lt;- glm.nb(satellites ~ weight, data = crabs)
+summary(fit_nb)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; glm.nb(formula = satellites ~ weight, data = crabs, init.theta = 0.90456808, 
+&gt;     link = log)
+&gt; 
+&gt; Deviance Residuals: 
+&gt;     Min       1Q   Median       3Q      Max  
+&gt; -1.7798  -1.4110  -0.2502   0.4770   2.0177  
+&gt; 
+&gt; Coefficients:
+&gt;             Estimate Std. Error z value Pr(&gt;|z|)    
+&gt; (Intercept) -4.05251    1.17143  -3.459 0.000541 ***
+&gt; weight       0.19207    0.04406   4.360  1.3e-05 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; (Dispersion parameter for Negative Binomial(0.9046) family taken to be 1)
+&gt; 
+&gt;     Null deviance: 213.05  on 172  degrees of freedom
+&gt; Residual deviance: 195.81  on 171  degrees of freedom
+&gt; AIC: 757.29
+&gt; 
+&gt; Number of Fisher Scoring iterations: 1
+&gt; 
+&gt; 
+&gt;               Theta:  0.905 
+&gt;           Std. Err.:  0.161 
+&gt; 
+&gt;  2 x log-likelihood:  -751.291
+```
+
+---
+## Model fitting - overdispersion
+
+LR test for overdispersion (NB model is a Poisson model with Gamma errors)
+
+
+```r
+x2 &lt;- -2*(logLik(fit)-logLik(fit_nb)); x2
+```
+
+```
+&gt; 'log Lik.' 171.8853 (df=2)
+```
+
+```r
+.5*(1 - pchisq(as.numeric(x2), df = 1)) #50:50 chisq
+```
+
+```
+&gt; [1] 0
+```
+
+```r
+pscl::odTest(fit_nb)
+```
+
+```
+&gt; Likelihood ratio test of H0: Poisson, as restricted NB model:
+&gt; n.b., the distribution of the test-statistic under H0 is non-standard
+&gt; e.g., see help(odTest) for details/references
+&gt; 
+&gt; Critical value of test statistic at the alpha= 0.05 level: 2.7055 
+&gt; Chi-Square Test Statistic =  171.8853 p-value = &lt; 2.2e-16
+```
+
+Did it help?
+
+
+```r
+1 - pchisq(fit_nb$deviance, fit_nb$df.residual)
+```
+
+```
+&gt; [1] 0.09385484
+```
+
+???
+.5*P(X0 &gt; T) + .5*P(X1 &gt; T)
+
+---
+## Modeling the rate
+
+For grouped data, we can model the rate `\(\lambda_i\)` using an *offset* term
+
+`$$\log(\lambda_i) = \boldsymbol{X \beta} \\
+\log(\mu_i/n_i) = \boldsymbol{X \beta} \\
+\log(\mu_i) = \log(n_i) + \boldsymbol{X \beta}$$`
+
+
+```r
+crabs_gr &lt;- crabs %&gt;% 
+  mutate_at(vars(color, spine_condition), as.factor) %&gt;% 
+  group_by(color, spine_condition) %&gt;% 
+  summarise(satellites = sum(satellites),
+            log_n = log(n())) %&gt;% 
+  ungroup()
+```
+
+---
+## Modeling the rate
+
+
+```r
+crabs_gr %&gt;% print(n = 12)
+```
+
+```
+&gt; # A tibble: 12 x 4
+&gt;    color spine_condition satellites log_n
+&gt;    &lt;fct&gt; &lt;fct&gt;                &lt;dbl&gt; &lt;dbl&gt;
+&gt;  1 1     1                       40 2.20 
+&gt;  2 1     2                        9 0.693
+&gt;  3 1     3                        0 0    
+&gt;  4 2     1                       79 3.18 
+&gt;  5 2     2                       14 2.08 
+&gt;  6 2     3                      220 4.14 
+&gt;  7 3     1                       16 1.10 
+&gt;  8 3     2                        7 1.39 
+&gt;  9 3     3                       75 3.61 
+&gt; 10 4     1                        0 0    
+&gt; 11 4     2                        0 0    
+&gt; 12 4     3                       45 3.00
+```
+
+```r
+fit_gr &lt;- glm(satellites ~ color + spine_condition, 
+              offset = log_n, family = poisson(), data = crabs_gr)
+```
+
+---
+## Modeling the rate
+
+
+```r
+summary(fit_gr)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; glm(formula = satellites ~ color + spine_condition, family = poisson(), 
+&gt;     data = crabs_gr, offset = log_n)
+&gt; 
+&gt; Deviance Residuals: 
+&gt;     Min       1Q   Median       3Q      Max  
+&gt; -2.8616  -1.2143  -0.3398   0.5850   2.7461  
+&gt; 
+&gt; Coefficients:
+&gt;                  Estimate Std. Error z value Pr(&gt;|z|)    
+&gt; (Intercept)       1.48089    0.14543  10.183  &lt; 2e-16 ***
+&gt; color2           -0.20654    0.16653  -1.240  0.21486    
+&gt; color3           -0.58183    0.19523  -2.980  0.00288 ** 
+&gt; color4           -0.68144    0.22585  -3.017  0.00255 ** 
+&gt; spine_condition2 -0.49992    0.20343  -2.458  0.01399 *  
+&gt; spine_condition3 -0.07126    0.11504  -0.619  0.53561    
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; (Dispersion parameter for poisson family taken to be 1)
+&gt; 
+&gt;     Null deviance: 58.924  on 11  degrees of freedom
+&gt; Residual deviance: 28.325  on  6  degrees of freedom
+&gt; AIC: 88.075
+&gt; 
+&gt; Number of Fisher Scoring iterations: 4
+```
+
+---
+## Modeling the rate
+
+
+```r
+anova(fit_gr, test = "Rao")
+```
+
+```
+&gt; Analysis of Deviance Table
+&gt; 
+&gt; Model: poisson, link: log
+&gt; 
+&gt; Response: satellites
+&gt; 
+&gt; Terms added sequentially (first to last)
+&gt; 
+&gt; 
+&gt;                 Df Deviance Resid. Df Resid. Dev     Rao  Pr(&gt;Chi)    
+&gt; NULL                               11     58.924                      
+&gt; color            3   23.653         8     35.271 23.1311 3.792e-05 ***
+&gt; spine_condition  2    6.946         6     28.325  6.2431   0.04409 *  
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+## Modeling the rate
+
+
+```r
+coef &lt;- broom::tidy(fit_gr, exponentiate = T, conf.int = T)
+coef[,1:5]
+```
+
+```
+&gt; # A tibble: 6 x 5
+&gt;   term             estimate std.error statistic  p.value
+&gt;   &lt;chr&gt;               &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+&gt; 1 (Intercept)         4.40      0.145     10.2  2.36e-24
+&gt; 2 color2              0.813     0.167     -1.24 2.15e- 1
+&gt; 3 color3              0.559     0.195     -2.98 2.88e- 3
+&gt; 4 color4              0.506     0.226     -3.02 2.55e- 3
+&gt; 5 spine_condition2    0.607     0.203     -2.46 1.40e- 2
+&gt; # … with 1 more row
+```
+
+```r
+coef[,c(1, 6:7)]
+```
+
+```
+&gt; # A tibble: 6 x 3
+&gt;   term             conf.low conf.high
+&gt;   &lt;chr&gt;               &lt;dbl&gt;     &lt;dbl&gt;
+&gt; 1 (Intercept)         3.26      5.78 
+&gt; 2 color2              0.592     1.14 
+&gt; 3 color3              0.383     0.824
+&gt; 4 color4              0.324     0.787
+&gt; 5 spine_condition2    0.400     0.890
+&gt; # … with 1 more row
+```
+
+---
+## Models for skewed data
+
+- Positive continuous data: **family = gamma/inverse.gaussian**
+
+- Positive continuous data with exact zeros: **family=tweedie** using package **statmod**
+
+--
+
+- Example: hospital length-of-stay (time in general)
+
+
+```r
+library(NHSRdatasets)
+ggplot(LOS_model, aes(x = LOS)) +
+  geom_histogram(bins = 20, fill = "lightblue", col = 1)
+```
+
+&lt;img src="lec8_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Models for skewed data
+
+
+```r
+ggplot(LOS_model, aes(x = log(LOS))) +
+  geom_histogram(bins = 20, fill = "lightblue", col = 1)
+```
+
+&lt;img src="lec8_files/figure-html/unnamed-chunk-16-1.png" style="display: block; margin: auto;" /&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

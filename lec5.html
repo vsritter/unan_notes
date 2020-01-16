@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>Biostatistics Module</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Victor Ritter" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Biostatistics Module
+## R Lab
+### Victor Ritter
+### UNC-CH
+### Jan 2020
+
+---
+
+
+
+
+class: center, middle, inverse
+# Part I
+# Survival Analysis
+
+---
+## Packages
+
+- `lubridate`
+- `survival`
+- `survminer`
+
+## Data
+
+The `lung` dataset is available from the `survival` package in `R`. The data contain subjects with advanced lung cancer from the North Central Cancer Treatment Group. 
+
+- time:	Survival time in days
+- status:	censoring status 1=censored, 2=dead
+- sex: Male=1 Female=2
+
+---
+## Dealing with dates in R
+
+- Data will often come with start and end dates rather than pre-calculated survival times. The first step is to make sure these are formatted as dates in R. 
+
+
+```r
+date_ex &lt;- 
+  tibble(
+    sx_date = c("2007-06-22", "2004-02-13", "2010-10-27"), 
+    last_fup_date = c("2017-04-15", "2018-07-04", "2016-10-31")
+    )
+date_ex
+```
+
+```
+&gt; # A tibble: 3 x 2
+&gt;   sx_date    last_fup_date
+&gt;   &lt;chr&gt;      &lt;chr&gt;        
+&gt; 1 2007-06-22 2017-04-15   
+&gt; 2 2004-02-13 2018-07-04   
+&gt; 3 2010-10-27 2016-10-31
+```
+
+---
+## Formatting dates - base R
+
+
+```r
+date_ex %&gt;% 
+  mutate(
+    sx_date = as.Date(sx_date,
+                      format = "%Y-%m-%d"), 
+    last_fup_date = as.Date(last_fup_date,
+                            format = "%Y-%m-%d") 
+    )
+```
+
+```
+&gt; # A tibble: 3 x 2
+&gt;   sx_date    last_fup_date
+&gt;   &lt;date&gt;     &lt;date&gt;       
+&gt; 1 2007-06-22 2017-04-15   
+&gt; 2 2004-02-13 2018-07-04   
+&gt; 3 2010-10-27 2016-10-31
+```
+
+- In base `R` the format must include the separator as well as the symbol. e.g. if your date is in format m/d/Y then you would need `format = "%m/%d/%Y"`
+
+---
+## Formatting dates - lubridate package
+
+We can also use the `lubridate` package to format dates. In this case, use the `ymd` function
+
+
+```r
+date_ex %&gt;% 
+  mutate(
+    sx_date = ymd(sx_date), 
+    last_fup_date = ymd(last_fup_date)
+    )
+```
+
+```
+&gt; # A tibble: 3 x 2
+&gt;   sx_date    last_fup_date
+&gt;   &lt;date&gt;     &lt;date&gt;       
+&gt; 1 2007-06-22 2017-04-15   
+&gt; 2 2004-02-13 2018-07-04   
+&gt; 3 2010-10-27 2016-10-31
+```
+
+---
+## Calculating survival times - base R
+
+Use `difftime` to calculate the number of days between our two dates and convert it to a numeric value using `as.numeric`. Then convert to years by dividing by `365.25`, the average number of days in a year.
+
+
+
+
+```r
+date_ex %&gt;% 
+  mutate(
+    os_yrs = 
+      as.numeric(
+        difftime(last_fup_date, 
+                 sx_date, 
+                 units = "days")) / 365.25
+    )
+```
+
+```
+&gt; # A tibble: 3 x 3
+&gt;   sx_date    last_fup_date os_yrs
+&gt;   &lt;date&gt;     &lt;date&gt;         &lt;dbl&gt;
+&gt; 1 2007-06-22 2017-04-15      9.82
+&gt; 2 2004-02-13 2018-07-04     14.4 
+&gt; 3 2010-10-27 2016-10-31      6.01
+```
+
+---
+## Calculating survival times - lubridate
+
+the operator `%--%` designates a time interval, which is then converted to the number of elapsed seconds using `as.duration` and finally converted to years by dividing by `dyears(1)`, which gives the number of seconds in a year.
+
+
+```r
+date_ex %&gt;% 
+  mutate(
+    os_yrs = 
+      as.duration(sx_date %--% last_fup_date) / dyears(1)
+    )
+```
+
+```
+&gt; # A tibble: 3 x 3
+&gt;   sx_date    last_fup_date os_yrs
+&gt;   &lt;date&gt;     &lt;date&gt;         &lt;dbl&gt;
+&gt; 1 2007-06-22 2017-04-15      9.82
+&gt; 2 2004-02-13 2018-07-04     14.4 
+&gt; 3 2010-10-27 2016-10-31      6.02
+```
+
+---
+## Kaplan-Meier curves
+
+**`survfit()`** function
+
+
+```r
+f1 &lt;- survfit(Surv(time, status) ~ 1, data = lung)
+f1
+```
+
+```
+&gt; Call: survfit(formula = Surv(time, status) ~ 1, data = lung)
+&gt; 
+&gt;       n  events  median 0.95LCL 0.95UCL 
+&gt;     228     165     310     285     363
+```
+
+---
+## Kaplan-Meier curves
+
+
+```r
+str(f1)
+```
+
+```
+&gt; List of 16
+&gt;  $ n        : int 228
+&gt;  $ time     : num [1:186] 5 11 12 13 15 26 30 31 53 54 ...
+&gt;  $ n.risk   : num [1:186] 228 227 224 223 221 220 219 218 217 215 ...
+&gt;  $ n.event  : num [1:186] 1 3 1 2 1 1 1 1 2 1 ...
+&gt;  $ n.censor : num [1:186] 0 0 0 0 0 0 0 0 0 0 ...
+&gt;  $ surv     : num [1:186] 0.996 0.982 0.978 0.969 0.965 ...
+&gt;  $ std.err  : num [1:186] 0.0044 0.00885 0.00992 0.01179 0.01263 ...
+&gt;  $ cumhaz   : num [1:186] 0.00439 0.0176 0.02207 0.03103 0.03556 ...
+&gt;  $ std.chaz : num [1:186] 0.00439 0.0088 0.00987 0.01173 0.01257 ...
+&gt;  $ type     : chr "right"
+&gt;  $ logse    : logi TRUE
+&gt;  $ conf.int : num 0.95
+&gt;  $ conf.type: chr "log"
+&gt;  $ lower    : num [1:186] 0.987 0.966 0.959 0.947 0.941 ...
+&gt;  $ upper    : num [1:186] 1 1 0.997 0.992 0.989 ...
+&gt;  $ call     : language survfit(formula = Surv(time, status) ~ 1, data = lung)
+&gt;  - attr(*, "class")= chr "survfit"
+```
+
+---
+## Kaplan-Meier curves
+
+
+```r
+lapply(summary(f1)[2:8], function(x) x[1:10])
+```
+
+```
+&gt; $time
+&gt;  [1]  5 11 12 13 15 26 30 31 53 54
+&gt; 
+&gt; $n.risk
+&gt;  [1] 228 227 224 223 221 220 219 218 217 215
+&gt; 
+&gt; $n.event
+&gt;  [1] 1 3 1 2 1 1 1 1 2 1
+&gt; 
+&gt; $n.censor
+&gt;  [1] 0 0 0 0 0 0 0 0 0 0
+&gt; 
+&gt; $surv
+&gt;  [1] 0.9956140 0.9824561 0.9780702 0.9692982 0.9649123 0.9605263 0.9561404
+&gt;  [8] 0.9517544 0.9429825 0.9385965
+&gt; 
+&gt; $std.err
+&gt;  [1] 0.004376336 0.008694643 0.009699183 0.011424650 0.012185800 0.012895585
+&gt;  [7] 0.013562070 0.014191357 0.015356372 0.015898957
+&gt; 
+&gt; $cumhaz
+&gt;  [1] 0.004385965 0.017601824 0.022066110 0.031034720 0.035559606 0.040105061
+&gt;  [7] 0.044671271 0.049258427 0.058475017 0.063126180
+```
+
+---
+## Kaplan-Meier curves
+
+
+```r
+plot(f1, xlab = "Days",
+     ylab = "Overall survival probability")
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-4-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Kaplan-Meier curves
+
+
+```r
+plot(f1, xlab = "Days",
+     ylab = "Overall survival probability",
+     mark.time = TRUE)
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-5-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Kaplan-Meier curves - ggsurvplot
+
+
+```r
+ggsurvplot(fit = f1, data = lung, xlab = "Days",
+           ylab = "Overall survival probability")
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-6-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Kaplan-Meier curves - ggsurvplot
+
+- cheatsheet at
+
+https://rpkgs.datanovia.com/survminer/survminer_cheatsheet.pdf
+
+.center[![](./images/survminer.png)]
+
+---
+## Kaplan-Meier curves - ggsurvplot
+
+
+```r
+f2 &lt;- survfit(Surv(time, status) ~ sex, data = lung)
+ggsurvplot(fit = f2)
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-7-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Kaplan-Meier curves - ggsurvplot
+
+
+```r
+f2 &lt;- survfit(Surv(time, status) ~ sex, data = lung)
+ggsurvplot(fit = f2, risk.table = TRUE,
+           conf.int = T, conf.type = "log-log")
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-8-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Kaplan-Meier curves - ggsurvplot
+
+
+```r
+f2 &lt;- survfit(Surv(time, status) ~ sex, data = lung)
+ggsurvplot(fit = f2, risk.table = TRUE, conf.int = T,
+           conf.type = "log-log", fun = "cumhaz")
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-9-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Comparing survival times
+
+**`survdiff()`** function
+
+- Log-rank test
+
+
+```r
+survdiff(Surv(time, status) ~ sex, data = lung, rho = 0)
+```
+
+```
+&gt; Call:
+&gt; survdiff(formula = Surv(time, status) ~ sex, data = lung, rho = 0)
+&gt; 
+&gt;         N Observed Expected (O-E)^2/E (O-E)^2/V
+&gt; sex=1 138      112     91.6      4.55      10.3
+&gt; sex=2  90       53     73.4      5.68      10.3
+&gt; 
+&gt;  Chisq= 10.3  on 1 degrees of freedom, p= 0.001
+```
+
+---
+## Comparing survival times
+
+- Gehan-Wilcoxon test (more weight to early times)
+
+
+```r
+survdiff(Surv(time, status) ~ sex, data = lung, rho = 1)
+```
+
+```
+&gt; Call:
+&gt; survdiff(formula = Surv(time, status) ~ sex, data = lung, rho = 1)
+&gt; 
+&gt;         N Observed Expected (O-E)^2/E (O-E)^2/V
+&gt; sex=1 138     70.4     55.6      3.95      12.7
+&gt; sex=2  90     28.7     43.5      5.04      12.7
+&gt; 
+&gt;  Chisq= 12.7  on 1 degrees of freedom, p= 4e-04
+```
+
+- `\(\rho\)` (`rho`) can be `\(-1 \leq \rho \leq 1\)`
+
+---
+## Proportional Hazards regression
+
+**`coxph()`** function
+
+
+```r
+f3 &lt;- coxph(Surv(time, status) ~ sex + age, data = lung)
+f3
+```
+
+```
+&gt; Call:
+&gt; coxph(formula = Surv(time, status) ~ sex + age, data = lung)
+&gt; 
+&gt;          coef exp(coef)  se(coef)      z       p
+&gt; sex -0.513219  0.598566  0.167458 -3.065 0.00218
+&gt; age  0.017045  1.017191  0.009223  1.848 0.06459
+&gt; 
+&gt; Likelihood ratio test=14.12  on 2 df, p=0.0008574
+&gt; n= 228, number of events= 165
+```
+
+---
+## Proportional Hazards regression
+
+
+```r
+summary(f3)
+```
+
+```
+&gt; Call:
+&gt; coxph(formula = Surv(time, status) ~ sex + age, data = lung)
+&gt; 
+&gt;   n= 228, number of events= 165 
+&gt; 
+&gt;          coef exp(coef)  se(coef)      z Pr(&gt;|z|)   
+&gt; sex -0.513219  0.598566  0.167458 -3.065  0.00218 **
+&gt; age  0.017045  1.017191  0.009223  1.848  0.06459 . 
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt;     exp(coef) exp(-coef) lower .95 upper .95
+&gt; sex    0.5986     1.6707    0.4311    0.8311
+&gt; age    1.0172     0.9831    0.9990    1.0357
+&gt; 
+&gt; Concordance= 0.603  (se = 0.025 )
+&gt; Likelihood ratio test= 14.12  on 2 df,   p=9e-04
+&gt; Wald test            = 13.47  on 2 df,   p=0.001
+&gt; Score (logrank) test = 13.72  on 2 df,   p=0.001
+```
+
+---
+## Proportional Hazards regression
+
+- Advanced options
+
+  - `coxph(Surv(time, status) ~ strata(sex) + age`
+  
+  Fits stratified Cox PH model (different baseline hazard for each level of `sex`)
+
+--
+  
+  - `coxph(Surv(time, status) ~ cluster(sex) + age`
+  
+  Cox PH for clustered data (where cluster indicator is `sex`). Computes robust - aka sandwich estimator, the Wei, Lin, Weissfeld (WLW) estimate.
+
+--
+
+  - `coxph(Surv(time, status) ~ cluster(id) + sex + age` or
+    `coxph(Surv(time, status) ~ sex + age, robust = TRUE`
+  
+  Computes robust std. errors to protect against model misspecification (working independence variance from GEE)
+
+---
+## Diagnostics - PH assumption
+
+
+```r
+ph &lt;- cox.zph(f3)
+ph
+```
+
+```
+&gt;        chisq df    p
+&gt; sex    2.608  1 0.11
+&gt; age    0.209  1 0.65
+&gt; GLOBAL 2.771  2 0.25
+```
+
+---
+## Diagnostics - PH assumption
+
+
+```r
+plot(ph)
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;&lt;img src="lec5_files/figure-html/unnamed-chunk-15-2.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Diagnostics - PH assumption
+
+
+```r
+ggcoxzph(ph)
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-16-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Diagnostics - Residuals
+
+- Schoenfeld residual for checking the proportional hazards assumption for a covariate
+
+- Martingale residual used to examine overall test of the goodness-of-fit and functional for of the covariate
+
+- Deviance residual for detection of poorly predicted observations
+
+- Score residual for determination of influential observations. 
+
+---
+## Diagnostics - Residuals
+
+
+```r
+ggcoxdiagnostics(f3, type = "score",
+                 ggtheme = theme_bw(), point.size = 1.5)
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-17-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Diagnostics - Residuals
+
+
+```r
+ggcoxdiagnostics(f3, type = "deviance",
+                 ggtheme = theme_bw(), point.size = 1.5)
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-18-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+normalized martingale residual
+
+- Positive values correspond to individuals that “died too soon” compared to expected survival times.
+- Negative values correspond to individual that “lived too long”.
+- Very large or small values are outliers, which are poorly predicted by the model.
+
+---
+## Diagnostics - Residuals
+
+
+```r
+ggcoxdiagnostics(f3, type = "dfbetas", ggtheme = theme_bw())
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-19-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+type = “dfbeta”, plots the estimated changes in the regression coefficients upon deleting each observation in turn; likewise, type=“dfbetas” produces the estimated changes in the coefficients divided by their standard errors.
+
+---
+## Diagnostics - Residuals
+
+
+```r
+ggcoxfunctional(Surv(time, status) ~ age + log(age) + sqrt(age),
+                data = lung, ggtheme = theme_bw())
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-20-1.png" style="display: block; margin: auto;" /&gt;
+
+???
+Plotting the Martingale residuals against continuous covariates is a common approach used to detect nonlinearity or, in other words, to assess the functional form of a covariate.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

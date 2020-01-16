@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>NEEDBios</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Victor Ritter" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# NEEDBios
+## R Lab
+### Victor Ritter
+### UNC-CH
+### Jan 2020
+
+---
+
+
+
+
+class: center, middle, inverse
+# Part I-a
+# R Packages and the tidyverse
+
+
+---
+## R packages
+
+- power of R is on its packages
+
+.center[![](./images/cran.png)]
+
+- Think of a task and there is probably a package that can help you do it.
+
+- All packages are open-source
+
+- Some packages are better then others (check for updates and quality of its documentation)
+
+- Easy to install packages via RStudio
+
+---
+## Importing external data - txt
+
+.left-column[![](./images/txt.png)]
+.right-column[
+
+```r
+read.table(file = "./data/dummy_data.csv",
+           header = T, sep = ",")
+```
+
+```
+&gt;   var1 var2
+&gt; 1    1 10.0
+&gt; 2    2 11.2
+&gt; 3    3   NA
+&gt; 4    4 -2.1
+```
+
+--
+
+
+```r
+read.csv(file = "./data/dummy_data.csv")
+```
+
+```
+&gt;   var1 var2
+&gt; 1    1 10.0
+&gt; 2    2 11.2
+&gt; 3    3   NA
+&gt; 4    4 -2.1
+```
+]
+
+---
+## Importing external data - excel
+
+- Requires external packages: e.g. **readxl**
+
+```
+install.packages("readxl")
+library(readxl)
+```
+.left-column[![](./images/xlsx.png)]
+.right-column[
+
+
+```r
+read_xlsx(path = "./data/dummy_data.xlsx")
+```
+
+```
+&gt; # A tibble: 4 x 2
+&gt;    var1  var2
+&gt;   &lt;dbl&gt; &lt;dbl&gt;
+&gt; 1     1  10  
+&gt; 2     2  11.2
+&gt; 3     3  NA  
+&gt; 4     4  -2.1
+```
+]
+
+---
+## Importing external data - spss/sas/stata
+
+- Requires package **haven**
+
+```
+library(haven)
+
+data_sas &lt;- read_sas("dados/datafile.sas7bdat")
+data_spss &lt;- read_spss("dados/datafile.sav")
+```
+
+--
+
+## Importing external data - from the internet
+
+- For a URL that has the data file, just use the file address
+
+```
+read.csv("https://mywebsite.com/iris.csv")
+```
+
+- Web scrapping can be done using packages like **rvest**, **rjason**, **jsonlite**
+
+---
+## Importing external data using RStudio
+
+- Can also be done via RStudio's File menu
+
+![](./images/file_menu.png)
+
+---
+## Checking the data
+
+- From **base R**
+
+
+```r
+h1n1 &lt;- read.csv("./data/h1n1_usa.csv")
+head(h1n1)
+```
+
+```
+&gt;        State Cases Deaths Population
+&gt; 1    Alabama   477      0    4661900
+&gt; 2     Alaska   272      0     686293
+&gt; 3    Arizona   947     15    6500180
+&gt; 4   Arkansas   131      0    2855390
+&gt; 5 California  3161     52   36756666
+&gt; 6   Colorado   171      0    4939456
+```
+
+--
+
+- From the **tidyverse** package
+
+
+```r
+glimpse(h1n1)
+```
+
+```
+&gt; Observations: 51
+&gt; Variables: 4
+&gt; $ State      &lt;fct&gt; Alabama, Alaska, Arizona, Arkansas, Ca…
+&gt; $ Cases      &lt;int&gt; 477, 272, 947, 131, 3161, 171, 1713, 3…
+&gt; $ Deaths     &lt;int&gt; 0, 0, 15, 0, 52, 0, 8, 0, 0, 23, 1, 3,…
+&gt; $ Population &lt;int&gt; 4661900, 686293, 6500180, 2855390, 367…
+```
+
+---
+## Checking the data
+
+- Can also inspect the dataset using RStudio's Environment tab
+
+- Or do **`View(h1n1)`**
+
+--
+
+- Try the **`summary()`** function from base R
+
+
+```r
+summary(h1n1)
+```
+
+```
+&gt;         State        Cases            Deaths         Population      
+&gt;  Alabama   : 1   Min.   :  45.0   Min.   : 0.000   Min.   :  532668  
+&gt;  Alaska    : 1   1st Qu.: 179.5   1st Qu.: 0.000   1st Qu.: 1653624  
+&gt;  Arizona   : 1   Median : 283.0   Median : 1.000   Median : 4269245  
+&gt;  Arkansas  : 1   Mean   : 856.7   Mean   : 5.922   Mean   : 5961955  
+&gt;  California: 1   3rd Qu.: 856.5   3rd Qu.: 5.500   3rd Qu.: 6524702  
+&gt;  Colorado  : 1   Max.   :6222.0   Max.   :63.000   Max.   :36756666  
+&gt;  (Other)   :45
+```
+
+--
+
+### Exporting data
+
+- As CSV with **`write.csv()`**
+- As an R object with **`write.rds()`**
+
+---
+class: center, middle, inverse
+# Part I-b
+# Introduction to &lt;br/&gt; tidyverse
+
+---
+## R before/after Hadley Wickham
+
+.left-column[![](./images/hadley.jpg)]
+
+.right-column[
+- Hadley Wickham, Chief Scientist at RStudio and an adjunct Professor of statistics at the University of Auckland, Stanford University, and Rice University.
+
+--
+
+- _tidyverse_: collection of R packages for data science that share a common philosophy
+]
+
+.center[![:scale %50](./images/tidy.png)]
+
+---
+## Pipe operator %&gt;%
+
+- Allow you to write more readable code
+
+
+```r
+x &lt;- c(1, 2, 3, 4)
+sqrt(sum(x))
+```
+
+```
+&gt; [1] 3.162278
+```
+
+```r
+x %&gt;% sum() %&gt;% sqrt()
+```
+
+```
+&gt; [1] 3.162278
+```
+
+- Like a recipe
+
+```
+let_cool(bake(put(mix(add(bowl(rep("farinha", 2), "water", "baking_soda",
+  "milk", "oil"), "flour", until = "soft"), duration = "3min"),
+  where = "pan", type = "pan", grease = TRUE), duration = "50min"),
+  "fridge", "20min")
+
+bowl(rep("flour", 2), "water", "baking_soda", "milk", "oil") %&gt;%
+  add("farinha", until = "soft") %&gt;%
+  mix(duration = "3min") %&gt;%
+  put(where = "pan", type = "pan", grease = TRUE) %&gt;%
+  bake(duration = "50min") %&gt;%
+  let_cool("fridge", "20min")
+```
+
+---
+## tibbles (tidy tables)
+
+- From the **tibble** package (included in the **tidyverse** package)
+
+
+```r
+h1n1 &lt;- as_tibble(h1n1)
+h1n1
+```
+
+```
+&gt; # A tibble: 51 x 4
+&gt;   State      Cases Deaths Population
+&gt;   &lt;fct&gt;      &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+&gt; 1 Alabama      477      0    4661900
+&gt; 2 Alaska       272      0     686293
+&gt; 3 Arizona      947     15    6500180
+&gt; 4 Arkansas     131      0    2855390
+&gt; 5 California  3161     52   36756666
+&gt; # … with 46 more rows
+```
+
+---
+## Shaping data with dplyr
+
+- Main functions:
+
+--
+
+  - **`filter()`** - filter lines
+
+--
+
+  - **`select()`** - select columns
+
+--
+
+  - **`arrange()`** - sort dataset
+
+--
+
+  - **`mutate()`** - create/modify columns
+
+--
+
+  - **`group_by()`** - group base
+
+--
+
+  - **`summarise()`** - summaris(z)e data
+
+---
+## Line filtering
+
+
+```r
+h1n1 %&gt;% 
+  filter(Deaths &gt; 10)
+```
+
+```
+&gt; # A tibble: 8 x 4
+&gt;   State      Cases Deaths Population
+&gt;   &lt;fct&gt;      &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+&gt; 1 Arizona      947     15    6500180
+&gt; 2 California  3161     52   36756666
+&gt; 3 Florida     2915     23   18328340
+&gt; 4 Illinois    3404     17   12901563
+&gt; 5 New Jersey  1414     15    8682661
+&gt; # … with 3 more rows
+```
+
+
+```r
+h1n1 %&gt;% 
+  filter(Deaths &gt; 10, Population &lt;= 1e7)
+```
+
+```
+&gt; # A tibble: 3 x 4
+&gt;   State      Cases Deaths Population
+&gt;   &lt;fct&gt;      &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+&gt; 1 Arizona      947     15    6500180
+&gt; 2 New Jersey  1414     15    8682661
+&gt; 3 Utah         988     16    2736424
+```
+
+---
+## Line filtering
+
+
+```r
+h1n1 %&gt;% 
+  filter(Deaths &gt; 10 &amp; Population &lt;= 1e7)
+```
+
+```
+&gt; # A tibble: 3 x 4
+&gt;   State      Cases Deaths Population
+&gt;   &lt;fct&gt;      &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+&gt; 1 Arizona      947     15    6500180
+&gt; 2 New Jersey  1414     15    8682661
+&gt; 3 Utah         988     16    2736424
+```
+
+
+```r
+h1n1 %&gt;% 
+  filter(Deaths &gt; 10 | Cases &gt;= 1000)
+```
+
+```
+&gt; # A tibble: 13 x 4
+&gt;   State       Cases Deaths Population
+&gt;   &lt;fct&gt;       &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+&gt; 1 Arizona       947     15    6500180
+&gt; 2 California   3161     52   36756666
+&gt; 3 Connecticut  1713      8    3501252
+&gt; 4 Florida      2915     23   18328340
+&gt; 5 Hawaii       1424      3    1288198
+&gt; # … with 8 more rows
+```
+
+---
+## Line filtering
+
+
+```r
+h1n1 %&gt;% 
+  filter(State %in% c("New York", "North Carolina"))
+```
+
+```
+&gt; # A tibble: 2 x 4
+&gt;   State          Cases Deaths Population
+&gt;   &lt;fct&gt;          &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+&gt; 1 New York        2738     63   19490297
+&gt; 2 North Carolina   483      5    9222414
+```
+
+--
+
+- String manipulation using the **`stringr`** package (also tidyverse)
+
+
+```r
+h1n1 %&gt;% 
+  filter(str_detect(State, "A"))
+```
+
+```
+&gt; # A tibble: 4 x 4
+&gt;   State    Cases Deaths Population
+&gt;   &lt;fct&gt;    &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+&gt; 1 Alabama    477      0    4661900
+&gt; 2 Alaska     272      0     686293
+&gt; 3 Arizona    947     15    6500180
+&gt; 4 Arkansas   131      0    2855390
+```
+
+---
+## Selecting columns
+
+- Infertility after Spontaneous and Induced Abortion (case-control)
+
+
+```r
+library(datasets)
+infert &lt;- as_tibble(infert)
+infert
+```
+
+```
+&gt; # A tibble: 248 x 8
+&gt;   education   age parity induced  case spontaneous stratum
+&gt;   &lt;fct&gt;     &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;       &lt;dbl&gt;   &lt;int&gt;
+&gt; 1 0-5yrs       26      6       1     1           2       1
+&gt; 2 0-5yrs       42      1       1     1           0       2
+&gt; 3 0-5yrs       39      6       2     1           0       3
+&gt; 4 0-5yrs       34      4       2     1           0       4
+&gt; 5 6-11yrs      35      3       1     1           1       5
+&gt; # … with 243 more rows, and 1 more variable:
+&gt; #   pooled.stratum &lt;dbl&gt;
+```
+
+---
+## Selecting columns
+
+
+```r
+infert %&gt;% select(age, case)
+```
+
+```
+&gt; # A tibble: 248 x 2
+&gt;     age  case
+&gt;   &lt;dbl&gt; &lt;dbl&gt;
+&gt; 1    26     1
+&gt; 2    42     1
+&gt; 3    39     1
+&gt; 4    34     1
+&gt; 5    35     1
+&gt; # … with 243 more rows
+```
+
+
+```r
+infert %&gt;% select(education:case)
+```
+
+```
+&gt; # A tibble: 248 x 5
+&gt;   education   age parity induced  case
+&gt;   &lt;fct&gt;     &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;
+&gt; 1 0-5yrs       26      6       1     1
+&gt; 2 0-5yrs       42      1       1     1
+&gt; 3 0-5yrs       39      6       2     1
+&gt; 4 0-5yrs       34      4       2     1
+&gt; 5 6-11yrs      35      3       1     1
+&gt; # … with 243 more rows
+```
+
+---
+## Selecting columns
+
+
+```r
+infert %&gt;% select(contains("stratum"))
+```
+
+```
+&gt; # A tibble: 248 x 2
+&gt;   stratum pooled.stratum
+&gt;     &lt;int&gt;          &lt;dbl&gt;
+&gt; 1       1              3
+&gt; 2       2              1
+&gt; 3       3              4
+&gt; 4       4              2
+&gt; 5       5             32
+&gt; # … with 243 more rows
+```
+
+
+```r
+infert %&gt;% select(-education, -age)
+```
+
+```
+&gt; # A tibble: 248 x 6
+&gt;   parity induced  case spontaneous stratum pooled.stratum
+&gt;    &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;       &lt;dbl&gt;   &lt;int&gt;          &lt;dbl&gt;
+&gt; 1      6       1     1           2       1              3
+&gt; 2      1       1     1           0       2              1
+&gt; 3      6       2     1           0       3              4
+&gt; 4      4       2     1           0       4              2
+&gt; 5      3       1     1           1       5             32
+&gt; # … with 243 more rows
+```
+
+---
+## Sorting dataset
+
+
+```r
+infert %&gt;% arrange(age)
+```
+
+```
+&gt; # A tibble: 248 x 8
+&gt;   education   age parity induced  case spontaneous stratum
+&gt;   &lt;fct&gt;     &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;       &lt;dbl&gt;   &lt;int&gt;
+&gt; 1 6-11yrs      21      1       0     1           1       9
+&gt; 2 12+ yrs      21      1       0     1           1      67
+&gt; 3 6-11yrs      21      1       0     0           1       9
+&gt; 4 12+ yrs      21      1       0     0           1      67
+&gt; 5 6-11yrs      21      1       1     0           0       9
+&gt; # … with 243 more rows, and 1 more variable:
+&gt; #   pooled.stratum &lt;dbl&gt;
+```
+
+
+```r
+infert %&gt;% arrange(spontaneous, desc(age))
+```
+
+```
+&gt; # A tibble: 248 x 8
+&gt;   education   age parity induced  case spontaneous stratum
+&gt;   &lt;fct&gt;     &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;       &lt;dbl&gt;   &lt;int&gt;
+&gt; 1 6-11yrs      44      1       0     0           0      20
+&gt; 2 6-11yrs      44      1       1     0           0      20
+&gt; 3 0-5yrs       42      1       1     1           0       2
+&gt; 4 6-11yrs      42      1       1     1           0      33
+&gt; 5 0-5yrs       42      1       0     0           0       2
+&gt; # … with 243 more rows, and 1 more variable:
+&gt; #   pooled.stratum &lt;dbl&gt;
+```
+
+---
+## Creating new variables
+
+
+```r
+h1n1 &lt;- h1n1 %&gt;%
+  mutate(Population = round(Population/1000, 0))
+print(h1n1, n = 10)
+```
+
+```
+&gt; # A tibble: 51 x 4
+&gt;    State                Cases Deaths Population
+&gt;    &lt;fct&gt;                &lt;int&gt;  &lt;int&gt;      &lt;dbl&gt;
+&gt;  1 Alabama                477      0       4662
+&gt;  2 Alaska                 272      0        686
+&gt;  3 Arizona                947     15       6500
+&gt;  4 Arkansas               131      0       2855
+&gt;  5 California            3161     52      36757
+&gt;  6 Colorado               171      0       4939
+&gt;  7 Connecticut           1713      8       3501
+&gt;  8 Delaware               381      0        873
+&gt;  9 District of Columbia    45      0        592
+&gt; 10 Florida               2915     23      18328
+&gt; # … with 41 more rows
+```
+
+---
+## Creating new variables
+
+
+```r
+h1n1 %&gt;%
+  mutate(Rate = Deaths/Cases) %&gt;% 
+  print(n = 10)
+```
+
+```
+&gt; # A tibble: 51 x 5
+&gt;    State                Cases Deaths Population    Rate
+&gt;    &lt;fct&gt;                &lt;int&gt;  &lt;int&gt;      &lt;dbl&gt;   &lt;dbl&gt;
+&gt;  1 Alabama                477      0       4662 0      
+&gt;  2 Alaska                 272      0        686 0      
+&gt;  3 Arizona                947     15       6500 0.0158 
+&gt;  4 Arkansas               131      0       2855 0      
+&gt;  5 California            3161     52      36757 0.0165 
+&gt;  6 Colorado               171      0       4939 0      
+&gt;  7 Connecticut           1713      8       3501 0.00467
+&gt;  8 Delaware               381      0        873 0      
+&gt;  9 District of Columbia    45      0        592 0      
+&gt; 10 Florida               2915     23      18328 0.00789
+&gt; # … with 41 more rows
+```
+
+---
+## Creating new variables
+
+
+```r
+h1n1 %&gt;%
+  mutate(aux = paste0(round(Deaths/Cases*100, 1), "%"),
+         Rate = ifelse(Deaths == 0, "No deaths", aux)) %&gt;% 
+  print(n = 10)
+```
+
+```
+&gt; # A tibble: 51 x 6
+&gt;    State              Cases Deaths Population aux   Rate    
+&gt;    &lt;fct&gt;              &lt;int&gt;  &lt;int&gt;      &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;   
+&gt;  1 Alabama              477      0       4662 0%    No deat…
+&gt;  2 Alaska               272      0        686 0%    No deat…
+&gt;  3 Arizona              947     15       6500 1.6%  1.6%    
+&gt;  4 Arkansas             131      0       2855 0%    No deat…
+&gt;  5 California          3161     52      36757 1.6%  1.6%    
+&gt;  6 Colorado             171      0       4939 0%    No deat…
+&gt;  7 Connecticut         1713      8       3501 0.5%  0.5%    
+&gt;  8 Delaware             381      0        873 0%    No deat…
+&gt;  9 District of Colum…    45      0        592 0%    No deat…
+&gt; 10 Florida             2915     23      18328 0.8%  0.8%    
+&gt; # … with 41 more rows
+```
+
+---
+## Creating new variables
+
+
+```r
+h1n1 &lt;- h1n1 %&gt;%
+  mutate(id = row_number()) %&gt;% 
+  unite(col = "state_id", id, State, sep = "_")
+h1n1 %&gt;% print(n = 10)
+```
+
+```
+&gt; # A tibble: 51 x 4
+&gt;    state_id               Cases Deaths Population
+&gt;    &lt;chr&gt;                  &lt;int&gt;  &lt;int&gt;      &lt;dbl&gt;
+&gt;  1 1_Alabama                477      0       4662
+&gt;  2 2_Alaska                 272      0        686
+&gt;  3 3_Arizona                947     15       6500
+&gt;  4 4_Arkansas               131      0       2855
+&gt;  5 5_California            3161     52      36757
+&gt;  6 6_Colorado               171      0       4939
+&gt;  7 7_Connecticut           1713      8       3501
+&gt;  8 8_Delaware               381      0        873
+&gt;  9 9_District of Columbia    45      0        592
+&gt; 10 10_Florida              2915     23      18328
+&gt; # … with 41 more rows
+```
+
+---
+## Creating new variables
+
+
+```r
+h1n1 &lt;- h1n1 %&gt;%
+  separate(col = state_id, into = c("id", "State"), sep = "_")
+h1n1 %&gt;% print(n = 10)
+```
+
+```
+&gt; # A tibble: 51 x 5
+&gt;    id    State                Cases Deaths Population
+&gt;    &lt;chr&gt; &lt;chr&gt;                &lt;int&gt;  &lt;int&gt;      &lt;dbl&gt;
+&gt;  1 1     Alabama                477      0       4662
+&gt;  2 2     Alaska                 272      0        686
+&gt;  3 3     Arizona                947     15       6500
+&gt;  4 4     Arkansas               131      0       2855
+&gt;  5 5     California            3161     52      36757
+&gt;  6 6     Colorado               171      0       4939
+&gt;  7 7     Connecticut           1713      8       3501
+&gt;  8 8     Delaware               381      0        873
+&gt;  9 9     District of Columbia    45      0        592
+&gt; 10 10    Florida               2915     23      18328
+&gt; # … with 41 more rows
+```
+
+---
+## Grouping and summarizing
+
+
+```r
+infert %&gt;% 
+  summarise(mean_age = mean(age, na.rm = TRUE))
+```
+
+```
+&gt; # A tibble: 1 x 1
+&gt;   mean_age
+&gt;      &lt;dbl&gt;
+&gt; 1     31.5
+```
+
+--
+
+
+```r
+infert %&gt;% 
+  summarise(mean_age = mean(age, na.rm = TRUE),
+            median_age = median(age, na.rm = TRUE),
+            n = n(),
+            nmiss = sum(is.na(age)))
+```
+
+```
+&gt; # A tibble: 1 x 4
+&gt;   mean_age median_age     n nmiss
+&gt;      &lt;dbl&gt;      &lt;dbl&gt; &lt;int&gt; &lt;int&gt;
+&gt; 1     31.5         31   248     0
+```
+
+---
+## Grouping and summarizing
+
+
+```r
+infert %&gt;% 
+  group_by(case) %&gt;% 
+  summarise(mean_age = mean(age, na.rm = TRUE),
+            median_age = median(age, na.rm = TRUE),
+            n = n(),
+            nmiss = sum(is.na(age)))
+```
+
+```
+&gt; # A tibble: 2 x 5
+&gt;    case mean_age median_age     n nmiss
+&gt;   &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt; &lt;int&gt; &lt;int&gt;
+&gt; 1     0     31.5         31   165     0
+&gt; 2     1     31.5         31    83     0
+```
+
+---
+## Grouping and summarizing
+
+
+```r
+infert %&gt;% 
+  group_by(case, induced) %&gt;% 
+  summarise(mean_age = mean(age, na.rm = TRUE),
+            median_age = median(age, na.rm = TRUE),
+            n = n(),
+            nmiss = sum(is.na(age))) %&gt;% 
+  print(n = 10)
+```
+
+```
+&gt; # A tibble: 6 x 6
+&gt; # Groups:   case [2]
+&gt;    case induced mean_age median_age     n nmiss
+&gt;   &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt; &lt;int&gt; &lt;int&gt;
+&gt; 1     0       0     32.2         32    96     0
+&gt; 2     0       1     30.5         29    45     0
+&gt; 3     0       2     30.5         28    24     0
+&gt; 4     1       0     31.6         31    47     0
+&gt; 5     1       1     31.4         31    23     0
+&gt; 6     1       2     31.5         30    13     0
+```
+
+---
+## Merging datasets
+
+- Family of **`_join()`** functions
+
+  - `left_join(x, y)`: returns ALL lines from `x` and ALL columns of `x` and `y`. Lines on `x` that does not have a correspondence in `y` will receive `NA` on the new dataset
+
+--
+
+  .center[![](./images/left.png)]
+
+---
+## Merging datasets
+
+  - `right_join(x, y)`: returns ALL lines from `y` and ALL columns of `y` and `x`. Lines on `y` that does not have a correspondence in `x` will receive `NA` on the new dataset
+
+--
+
+  .center[![](./images/right.png)]
+
+---
+## Merging datasets
+
+  - `full_join(x, y)`: returns ALL lines and ALL columns of `y` and `x`. Lines without correspondence will receive `NA` on the new dataset
+
+--
+
+  .center[![](./images/full.png)]
+
+---
+## Merging datasets
+
+- `by = &lt;key_variable&gt;`: used to match cases
+
+- In case we have duplicated keys, this will happen
+
+--
+
+  .center[![](./images/dup_key.png)]
+
+- Same if there are duplicated on the "look-up" table
+
+---
+## Merging datasets
+
+
+```r
+x &lt;- data.frame(id=c(1, 2, 3), vx=c("x1", "x2", "x3"))
+y &lt;- data.frame(id=c(1, 2), vy=c("y1", "y2"))
+x; y
+```
+
+```
+&gt;   id vx
+&gt; 1  1 x1
+&gt; 2  2 x2
+&gt; 3  3 x3
+```
+
+```
+&gt;   id vy
+&gt; 1  1 y1
+&gt; 2  2 y2
+```
+
+```r
+left_join(x, y, by = "id")
+```
+
+```
+&gt;   id vx   vy
+&gt; 1  1 x1   y1
+&gt; 2  2 x2   y2
+&gt; 3  3 x3 &lt;NA&gt;
+```
+
+---
+## Merging datasets
+
+
+```r
+x &lt;- data.frame(id=c(1, 2, 2, 1), vx=c("x1", "x2", "x3", "x4"))
+y &lt;- data.frame(id=c(1, 2, 2), vy=c("y1", "y2", "y2"))
+x; y
+```
+
+```
+&gt;   id vx
+&gt; 1  1 x1
+&gt; 2  2 x2
+&gt; 3  2 x3
+&gt; 4  1 x4
+```
+
+```
+&gt;   id vy
+&gt; 1  1 y1
+&gt; 2  2 y2
+&gt; 3  2 y2
+```
+
+```r
+left_join(x, y, by = "id")
+```
+
+```
+&gt;   id vx vy
+&gt; 1  1 x1 y1
+&gt; 2  2 x2 y2
+&gt; 3  2 x2 y2
+&gt; 4  2 x3 y2
+&gt; 5  2 x3 y2
+&gt; 6  1 x4 y1
+```
+
+---
+## Reshaping data wide/long
+
+- Usually necessary when measuring individuals multiple times or over time on the same variable
+
+--
+
+- **`wide`** - one line per person
+
+.center[![](./images/wide.png)]
+
+--
+
+- **`long`** - multiple lines per person
+
+.center[![](./images/long.png)]
+
+---
+## Reshaping data wide/long
+
+### Wide to long: gather()
+
+.center[![](./images/gather0.png)]
+
+---
+## Reshaping data wide/long
+
+### Wide to long: gather()
+
+.center[![](./images/gather1.png)]
+
+---
+## Reshaping data wide/long
+
+### Wide to long: gather()
+
+.center[![](./images/gather2.png)]
+
+---
+## Reshaping data wide/long
+
+### Wide to long: spread()
+
+.center[![](./images/spread1.png)]
+
+---
+## Reshaping data wide/long
+
+### Wide to long: spread()
+
+.center[![](./images/spread2.png)]
+
+---
+## Reshaping data wide/long
+
+### Wide to long: spread()
+
+.center[![](./images/spread3.png)]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

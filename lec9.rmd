@@ -1,0 +1,316 @@
+---
+title: "Biostatistics Module"
+subtitle: "R Lab"
+author: "Victor Ritter"
+institute: "UNC-CH"
+date: "Jan 2020"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      beforeInit: "macros.js"
+      # highlightStyle: github
+      # highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{css}
+.tiny .remark-code {
+  font-size: 70% !important;
+}
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = ">",
+                      cache = TRUE,
+                      cache.path = "./cache/")
+options(htmltools.dir.version = FALSE,
+        dplyr.width = 60,
+        dplyr.print_min = 5,
+        dplyr.print_max = 5)
+
+library(lme4)
+library(lmerTest)
+```
+
+class: center, middle, inverse
+# Part I
+# Analysis of repeated measures <br/> in R
+
+---
+## GEE - basics
+
+- population-averaged estimates and their standard errors
+
+- The responses $Y_1, Y_2, \dots, Y_n$ are correlated or clustered
+
+- There is a linear relationship between the covariates and a transformation of the mean response (i.e. link function)
+
+- Within-subject covariance has some structure (“working covariance”):
+
+  - independence (observations over time are independent)
+  
+  - exchangeable (all observations over time have the same correlation)
+  
+  - AR(1) (correlation decreases as a power of how many time-points apart two observations are)
+  
+  - unstructured (correlation between all time-points may be different)
+
+
+---
+## GEE - basics
+
+- misspecified covariance: use “sandwich estimator” for robustness
+
+  - idea behind is to use the empirical residuals to approximate the underlying covariance (iteratively reweighted least squares)
+  
+- Why bother specifying the working covariance to begin with?
+
+  - Statistical efficiency
+  
+  - Sandwich robustness is a large-sample property
+
+- Should we use sandwich all the time? No, it is problematic if
+
+  - The number of independent subjects is much smaller than the number of repeated measures
+  
+  - The design is unbalanced – the number of repeated measures differs across individuals
+
+---
+## GEE - package and data
+
+- **geepack** package
+
+- **dietox** data available
+  
+  - Growth curves of pigs in a 3x3 factorial experiment
+  
+  - interest in modeling pig's weight as a function of time, vitamin E, and Copper supplement dosage
+  
+```{r}
+library(geepack)
+library(tidyverse)
+as_tibble(dietox)
+```
+  
+---
+## GEE - package and data
+
+```{r}
+dietox %>%
+  group_by(Pig) %>%
+  count() %>%
+  arrange(n) %>%
+  print(n = 10)
+```
+
+---
+## GEE - descriptive
+
+Marginal covariance
+
+```{r}
+pig_wide <- dietox %>%
+  dplyr::select(Pig, Weight, Time) %>% 
+  spread(Time, Weight) %>% 
+  as_tibble()
+pig_wide
+```
+
+---
+## GEE - descriptive
+
+```{r, fig.width=7, fig.height=5, fig.align='center'}
+dietox %>%
+  ggplot(aes(x = Time, y = Weight, group = Pig)) +
+  geom_point() + geom_line() +
+  stat_summary(fun.y=mean, aes(group=1),
+               geom="line", colour="red", size = 1.5)
+```
+
+---
+## GEE - descriptive
+
+```{r, fig.width=7, fig.height=5, fig.align='center'}
+dietox %>%
+  ggplot(aes(x = Time, y = Weight, group = Pig, color = Cu)) +
+  geom_point() +
+  geom_line()
+```
+
+---
+## GEE - descriptive
+
+Marginal covariance
+
+```{r}
+cor(pig_wide[,-1], use = "pairwise.complete.obs") %>% round(2)
+```
+  
+  
+---
+## GEE - model fit
+
+```{r echo=FALSE}
+mf <- formula(Weight ~ Time + Evit + Cu)
+geeAr1 <- geeglm(mf, id=Pig, data=dietox,
+                 family=gaussian, corstr="ar1")
+```
+.tiny[
+```{r}
+summary(geeAr1)
+```
+]
+
+---
+## GEE - model fit
+
+Independent correlation structure
+
+```{r}
+geeInd <- geeglm(mf, id=Pig, data=dietox,
+                 family=gaussian, corstr="ind")
+```
+.tiny[
+```{r}
+summary(geeInd)
+```
+]
+
+---
+## GEE - model fit
+
+- On the choice of the correlation structure
+
+```{r}
+MuMIn::QIC(geeAr1)
+MuMIn::QICu(geeAr1)
+MuMIn::QIC(geeInd)
+MuMIn::QICu(geeInd)
+```
+
+---
+## Linear Mixed Models - basics
+
+- Subject-specific or cluster-specific model of correlated/clustered data
+
+- Basic premise is that there is natural heterogeneity across individuals in the
+study population that is the result of unobserved covariates; random effects
+account for the unobserved covariates
+
+- Package **lme4** fit Linear (**`lmer()`**) and Generalized Linear (**`glmer()`**) Mixed models
+
+- Model formula is of the form:
+
+.center[y ~ fixed effects + (random effect | cluster)]
+
+  - Random intercept model: `(1 | id)`
+  
+  - Random slope model: `(0 + x | id)`
+  
+  - Random slope and intercept model: `(1 + x | id)` or just `(x | id)`
+
+
+---
+## Linear Mixed Models - model fit
+
+Modeling **individual means** with random intercept
+
+```{r}
+mm1 <- lmer(Weight ~ Time + Evit + Cu +
+              (1|Pig), data=dietox)
+```
+```
+summary(mm1)
+```
+
+---
+**summary(mm1)**
+
+.tiny[
+```{r echo=FALSE}
+summary(mm1)
+```
+]
+
+---
+## Linear Mixed Models - model fit
+
+```{r}
+broom.mixed::glance(mm1)
+broom.mixed::tidy(mm1, conf.int = T)
+```
+
+---
+## Linear Mixed Models - model fit
+
+Modeling **individual means** with random intercept
+
+```{r}
+mm2 <- lmer(Weight ~ Time + Evit + Cu +
+              (1+Time|Pig), data=dietox)
+```
+```
+summary(mm2)
+```
+
+---
+## LMM - testing fixed-effects
+
+Use ML estimates, i.e. **REML = FALSE**
+
+```{r}
+fix1 <- lmer(Weight ~ Time + Evit + Cu +
+              (1|Pig), data=dietox, REML = F)
+fix2 <- lmer(Weight ~ Time + Evit +
+              (1|Pig), data=dietox, REML = F)
+
+anova(fix1, fix2, refit = FALSE)
+```
+
+---
+## LMM - testing random-effects
+
+Use ML estimates, i.e. **REML = TRUE**
+
+```{r}
+rd1 <- lmer(Weight ~ Time + Evit +
+              (1|Pig), data=dietox, REML = T)
+rd2 <- lmer(Weight ~ Time + Evit +
+              (1 + Time|Pig), data=dietox, REML = T)
+
+anova(rd1, rd2, refit = FALSE)
+```
+
+---
+## LMM - testing random-effects
+
+Except when testing if **ANY** random-effect is necessary
+
+```{r}
+rd1 <- lmer(Weight ~ Time + Evit +
+              (1|Pig), data=dietox, REML = F)
+rd2 <- lm(Weight ~ Time + Evit, data=dietox)
+
+dev1 <- -2*logLik(rd1)
+dev0 <- -2*logLik(rd2)
+devdiff <- as.numeric(dev0-dev1); devdiff
+dfdiff <- attr(dev1,"df") - attr(dev0,"df"); dfdiff
+cat('Chi-square =', devdiff, '(df=', dfdiff,'), p =', 
+  pchisq(devdiff, dfdiff, lower.tail=FALSE))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

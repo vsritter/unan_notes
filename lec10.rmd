@@ -1,0 +1,81 @@
+---
+title: "Biostatistics Module"
+subtitle: "R Lab"
+author: "Victor Ritter"
+institute: "UNC-CH"
+date: "Jan 2020"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      beforeInit: "macros.js"
+      # highlightStyle: github
+      # highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{css}
+.tiny .remark-code {
+  font-size: 70% !important;
+}
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = ">",
+                      cache = TRUE,
+                      cache.path = "./cache/")
+options(htmltools.dir.version = FALSE,
+        dplyr.width = 60,
+        dplyr.print_min = 5,
+        dplyr.print_max = 5)
+
+library(tidyverse)
+library(epiR)
+```
+
+class: center, middle, inverse
+# Part I
+# Stratification in R
+
+---
+## Analysis of 2x2 tables
+
+- **epiR** package: Tools for the Analysis of Epidemiological Data
+ 
+  - Adjusted and unadjusted measures of disease frequency
+  
+  - Quantifying measures of association on single or multiple strata of count data
+  
+  - confidence intervals around incidence risk and incidence rate estimates
+  
+  - miscellaneous functions for use in meta-analysis
+  
+  - diagnostic test interpretation
+  
+  - sample size calculations
+
+Other packages:
+
+- Epi, epibasix, epiDisplay, epitools, ...
+
+- The pubh package provides tries to provide a common syntax for the most frequent statistical analysis in epidemiology.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

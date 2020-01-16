@@ -1,0 +1,235 @@
+---
+title: "Biostatistics Module"
+subtitle: "R Lab"
+author: "Victor Ritter"
+institute: "UNC-CH"
+date: "Jan 2020"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      beforeInit: "macros.js"
+      # highlightStyle: github
+      # highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = ">",
+                      cache = TRUE,
+                      cache.path = "./cache/")
+options(htmltools.dir.version = FALSE,
+        dplyr.width = 60,
+        dplyr.print_min = 5,
+        dplyr.print_max = 5)
+
+library(tidyverse)
+library(caret)
+library(ResourceSelection)
+library(broom)
+library(pROC)
+```
+
+class: center, middle, inverse
+# Part I
+# Logistic Regression
+
+---
+## Data
+
+- Analysis based on the Coursera course “Introduction to Logistic Regression” by Prof. Stanley Lemeshow (OSU-USA)
+
+- _Applied Logistic Regression_ by Hosmer & Lemeshow (2013)
+
+--
+
+- Low birth weight study data aiming to identify risk factors associated with giving birth to a low birth weight baby in the population being served by the medical centre where the data were collected.
+
+- We'll be restricted to
+  - `LOW`: Low Birth Weight (1=Birth Weight < 2.5kg; 0=otherwise)
+  - `AGE`: moms age
+  - `LWT`: baby weight at last menstrual period
+  - `RACE`: mom's race (1 = White, 2 = Black, 3 = Other)
+
+???
+
+Ohio State Uni. College of PH
+
+---
+## Data - descriptive analysis
+
+```{r}
+LOWBWT = read.table("./data/LOWBWT.txt", header = TRUE) %>% 
+  mutate_at(vars(LOW, RACE), as.factor)
+fq <- LOWBWT %>% {
+  table(.$LOW, .$RACE)
+}
+margin.table(fq, 1)
+prop.table(fq, margin = 1)
+```
+
+---
+## Data - descriptive analysis
+
+```{r, echo=T, message=F, warning=F, fig.width=7, fig.height=6, fig.align='center'}
+# Overlaid histograms
+ggplot(LOWBWT, aes(x = AGE, fill = LOW)) +
+  geom_density(alpha=.5)
+```
+
+---
+## Data - descriptive analysis
+
+```{r, echo=T, message=F, warning=F, fig.width=7, fig.height=6, fig.align='center'}
+ggplot(LOWBWT, aes(x = LWT, fill = LOW)) +
+  geom_density(alpha=.5)
+```
+
+---
+## Model - fit
+
+```{r}
+fit = glm(LOW ~ AGE + LWT + RACE,
+          family = binomial(link = "logit"), data = LOWBWT)
+fit
+```
+
+---
+## Model - fit
+
+```{r}
+summary(fit)
+```
+
+---
+## Model - analysis of deviance table
+
+```{r}
+anova(fit, test = "Chisq")
+```
+
+---
+## Model - analysis of deviance table
+
+```{r}
+car::Anova(fit)
+```
+
+---
+## Model - analysis of deviance table
+
+```{r}
+fit1 <- update(fit, . ~ AGE + LWT * RACE)
+anova(fit1, fit, test = "LR")
+```
+
+---
+## Model - goodness-of-fit
+
+- Classic GOF statistics
+
+```{r}
+# Deviance
+g2 <- sum(residuals(fit, type = "deviance")^2)
+g2
+1 - pchisq(g2, df = fit$df.residual)
+
+# Person 
+p <- sum(residuals(fit, type = "pearson")^2)
+p
+1 - pchisq(p, df = fit$df.residual)
+
+```
+
+---
+## Model - goodness-of-fit
+
+- Hosmer-Lemeshow test
+
+```{r}
+library(ResourceSelection) 
+hoslem.test(fit$y, fitted(fit), g = 10)
+```
+
+---
+## Model - overdispersion
+
+```{r}
+summary(update(fit, . ~ ., family = quasibinomial))
+```
+
+---
+## Model - residuals
+
+```{r}
+library(broom)
+fit_resid <- augment(fit) %>% 
+  mutate(index = 1:n())
+fit_resid
+```
+
+---
+## Model - residuals
+
+```{r, echo=T, message=F, warning=F, fig.width=7, fig.height=6, fig.align='center'}
+ggplot(fit_resid, aes(index, .std.resid, color = LOW)) + 
+  geom_point(size = 2)
+```
+
+???
+Those standardized residuals that exceed 3 represent possible outliers and may deserve closer attention.
+
+---
+## Model - residuals
+
+```{r, echo=T, message=F, warning=F, fig.width=7, fig.height=6, fig.align='center'}
+ggplot(fit_resid, aes(index, .std.resid)) + 
+  geom_point(size = 2) + facet_wrap(~ LOW, scales = "free")
+```
+
+---
+## Model - residuals
+
+```{r, echo=T, message=F, warning=F, fig.width=7, fig.height=5, fig.align='center'}
+ggplot(fit_resid, aes(x = .fitted, y = .cooksd,
+                      ymin = 0, ymax = .cooksd)) + 
+  geom_point(size = 2) + geom_linerange() +
+  geom_label(aes(x = .fitted, y = .cooksd, label = index),
+             data = top_n(fit_resid, 5, .cooksd))
+```
+
+---
+## Model - agreement
+
+```{r}
+pred <- predict(fit, type = "response")
+pred[1:20]
+
+bin_pred <- as.numeric(pred > 0.5) %>% factor()
+table(bin_pred, LOWBWT$LOW)
+```
+
+---
+## Model - agreement
+
+```{r}
+library(caret)
+confusionMatrix(data = bin_pred, reference = LOWBWT$LOW)
+```
+
+---
+## Model - agreement
+
+```{r}
+library(pROC)
+roc <- roc(LOWBWT$LOW ~ pred)
+roc
+```
+
+---
+## Model - agreement
+
+```{r, echo=T, message=F, warning=F, fig.width=7, fig.height=6, fig.align='center'}
+plot(roc, print.auc = T)
+```

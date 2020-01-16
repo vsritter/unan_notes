@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>Biostatistics Module</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Victor Ritter" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Biostatistics Module
+## R Lab
+### Victor Ritter
+### UNC-CH
+### Jan 2020
+
+---
+
+
+
+
+class: center, middle, inverse
+# Part I
+# Working with factors
+
+---
+## 'forcats' package
+
+Tidyverse package with useful functions for dealing with factors
+
+--
+
+### Dummy data
+
+Overly complicated way to create a dataset
+
+.pull-left[
+
+```r
+dt &lt;- data.frame(
+  x = LETTERS[1:2]
+  ) %&gt;% 
+  group_by(x) %&gt;% 
+  do({
+    data.frame(
+      .,
+      y = rep(LETTERS[4:6],3:1)
+    )
+  }) %&gt;% 
+  ungroup()
+```
+]
+.pull-right[
+
+```r
+dt %&gt;% print(n = 9)
+```
+
+```
+&gt; # A tibble: 12 x 2
+&gt;   x     y    
+&gt;   &lt;fct&gt; &lt;fct&gt;
+&gt; 1 A     D    
+&gt; 2 A     D    
+&gt; 3 A     D    
+&gt; 4 A     E    
+&gt; 5 A     E    
+&gt; 6 A     F    
+&gt; 7 B     D    
+&gt; 8 B     D    
+&gt; 9 B     D    
+&gt; # ... with 3 more rows
+```
+]
+
+---
+## 'forcats' package
+
+Main functions
+
+ - fct_c
+ 
+ - fct_collapse
+ 
+ - fct_recode
+ 
+ - fct_lump
+ 
+ - lvls_reorder/fct_reorder
+ 
+ - fct_relevel
+
+---
+## Combining factors
+
+
+```r
+f1 &lt;- factor(rep(c("a", "b"), 2))
+f2 &lt;- factor(rep(c("c", "d"), 2))
+
+f1
+```
+
+```
+&gt; [1] a b a b
+&gt; Levels: a b
+```
+
+```r
+f2
+```
+
+```
+&gt; [1] c d c d
+&gt; Levels: c d
+```
+
+```r
+c(f1, f2)
+```
+
+```
+&gt; [1] 1 2 1 2 1 2 1 2
+```
+
+```r
+c(as.character(f1), as.character(f2)) %&gt;% as.factor()
+```
+
+```
+&gt; [1] a b a b c d c d
+&gt; Levels: a b c d
+```
+
+---
+## Combining factors levels
+
+
+```r
+fct_c(f1, f2)
+```
+
+```
+&gt; [1] a b a b c d c d
+&gt; Levels: a b c d
+```
+--
+
+## Grouping levels
+
+
+```r
+factor &lt;- factor(c("a","a","a","b","b", "c", "d", "e"))
+fct_collapse(factor, b2 = c("b", "c"), a2 = c("a", "d"))
+```
+
+```
+&gt; [1] a2 a2 a2 b2 b2 b2 a2 e 
+&gt; Levels: a2 b2 e
+```
+
+```r
+fct_recode(factor, b2 = "b", b2 = "c", a2 = "a", a2 = "d")
+```
+
+```
+&gt; [1] a2 a2 a2 b2 b2 b2 a2 e 
+&gt; Levels: a2 b2 e
+```
+
+```r
+fct_lump(factor, n = 2, other_level = "other")
+```
+
+```
+&gt; [1] a     a     a     b     b     other other other
+&gt; Levels: a b other
+```
+
+---
+## Grouping levels
+
+- Note about **`fct_lump()`**: if `n` (and `prop`) are missing, `fct_lump` lumps together the least frequent levels into "other", while ensuring that "other" is still the smallest level
+
+Together with **`dplyr`**, we have
+
+
+```r
+dt %&gt;% 
+  mutate(y = fct_lump(y, 5, 'other')) %&gt;% 
+  print(n = 10)
+```
+
+```
+&gt; # A tibble: 12 x 2
+&gt;    x     y    
+&gt;    &lt;fct&gt; &lt;fct&gt;
+&gt;  1 A     D    
+&gt;  2 A     D    
+&gt;  3 A     D    
+&gt;  4 A     E    
+&gt;  5 A     E    
+&gt;  6 A     Other
+&gt;  7 B     D    
+&gt;  8 B     D    
+&gt;  9 B     D    
+&gt; 10 B     E    
+&gt; # ... with 2 more rows
+```
+
+---
+## Reordering levels
+
+- To reorder a factor levels in base R we would need to create a new factor with the desired level ordering
+
+--
+
+- With **`fct_reorder()`** from forcats:
+
+
+```r
+factor &lt;- factor(letters[1:10])
+lvls_reorder(factor, idx = 10:1)
+```
+
+```
+&gt;  [1] a b c d e f g h i j
+&gt; Levels: j i h g f e d c b a
+```
+
+--
+
+- Re-order based on a function
+
+
+```r
+factor &lt;- factor(c("a","a","a","b","b","c"))
+vector &lt;- c(1,2,3,1,1,1.2)
+tapply(vector, factor, mean)
+```
+
+```
+&gt;   a   b   c 
+&gt; 2.0 1.0 1.2
+```
+
+```r
+fct_reorder(factor, vector, mean)
+```
+
+```
+&gt; [1] a a a b b c
+&gt; Levels: b c a
+```
+
+---
+## Reordering levels
+
+- **`fct_relevel()`**, pulls the desired levels to the beginning of the level vector
+
+
+```r
+factor &lt;- factor(c("a","a","a","b","b","c"))
+factor
+```
+
+```
+&gt; [1] a a a b b c
+&gt; Levels: a b c
+```
+
+```r
+fct_relevel(factor, "c")
+```
+
+```
+&gt; [1] a a a b b c
+&gt; Levels: c a b
+```
+
+```r
+fct_relevel(factor, "b","c")
+```
+
+```
+&gt; [1] a a a b b c
+&gt; Levels: b c a
+```
+
+---
+class: center, middle, inverse
+# Part II
+# Analysis of Variance
+
+---
+## Main packages and functions
+
+- **`aov()`** (type 1 SS - sequential)
+
+- **`lm()`** (type 3 SS - marginal)
+
+- **`forcats`** for dealing with factors
+
+--
+
+- Default parametrization is first level of aech factor as reference (set to zero)
+
+.center[![](./images/anova_par.png)]
+
+---
+## Know you parametrization/SS
+
+- consider balanced/unbalanced data with/without missing values
+
+- Don't assume what comes out of any software to be 100% correct. Read the documentation carefully.
+
+--
+
+- Ex: function **Anova()** from **car** package that allow us to compute type II/III SS help says
+
+.center[![](./images/car_help.png)]
+
+---
+## SS relationships
+
+.center[![](./images/ss.png)]
+
+- The type of SS to use on unbalanced designs is not a consensus among statisticians and software 
+
+- They all have pros and cons regarding interpretation and power
+
+???
+There is NO consensus on which type of SS should be used for unbalanced designs, but most statisticians generally recommend type III, which is the default in most software packages such as SAS, SPSS, JMP, Minitab, Stata, Statista, Systat, and Unistat while R, S-Plus, Genstat, and Mathematica use type I. However, Langsrud (2003) argues that Type II is preferable considering the power of types II and III.
+
+---
+## ANOVA in R - Data
+
+
+```r
+library(datasets)
+glimpse(ToothGrowth)
+```
+
+```
+&gt; Observations: 60
+&gt; Variables: 3
+&gt; $ len  &lt;dbl&gt; 4.2, 11.5, 7.3, 5.8, 6.4, 10.0, 11.2, 11.2...
+&gt; $ supp &lt;fct&gt; VC, VC, VC, VC, VC, VC, VC, VC, VC, VC, VC...
+&gt; $ dose &lt;dbl&gt; 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0....
+```
+
+A data frame with 60 observations on 3 variables.
+
+- `len`	 Tooth length
+- `supp` Supplement type (VC or OJ).
+- `dose` Dose in milligrams/day
+
+
+```r
+xtabs(~ supp + dose, data = ToothGrowth)
+```
+
+```
+&gt;     dose
+&gt; supp 0.5  1  2
+&gt;   OJ  10 10 10
+&gt;   VC  10 10 10
+```
+
+---
+## ANOVA in R - descriptive analysis
+
+
+```r
+sum &lt;- ToothGrowth %&gt;% 
+  group_by(supp, dose) %&gt;% 
+  summarise_all(list(m = mean,
+                     sd = sd,
+                     n = length))
+print(sum, n=10)
+```
+
+```
+&gt; # A tibble: 6 x 5
+&gt; # Groups:   supp [2]
+&gt;   supp   dose     m    sd     n
+&gt;   &lt;fct&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+&gt; 1 OJ      0.5 13.2   4.46    10
+&gt; 2 OJ      1   22.7   3.91    10
+&gt; 3 OJ      2   26.1   2.66    10
+&gt; 4 VC      0.5  7.98  2.75    10
+&gt; 5 VC      1   16.8   2.52    10
+&gt; 6 VC      2   26.1   4.80    10
+```
+
+---
+## ANOVA in R - descriptive analysis
+
+
+```r
+ToothGrowth %&gt;% 
+  ggplot() +
+  geom_boxplot(aes(x = supp, y = len))
+```
+
+&lt;img src="lec6_files/figure-html/unnamed-chunk-13-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## ANOVA in R - descriptive analysis
+
+
+```r
+ToothGrowth %&gt;% 
+  ggplot() +
+  geom_boxplot(aes(x = dose, y = len))
+```
+
+&lt;img src="lec6_files/figure-html/unnamed-chunk-14-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## ANOVA in R - descriptive analysis
+
+
+```r
+ToothGrowth %&gt;% 
+  ggplot() +
+  geom_boxplot(aes(x = dose, y = len, fill = supp))
+```
+
+&lt;img src="lec6_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## ANOVA in R - descriptive analysis
+
+
+```r
+sum %&gt;% 
+  ggplot(aes(x=dose, y=m, group=supp, color=supp)) + 
+  geom_line(size = 1.1) + geom_point(size = 1.2) +
+  geom_errorbar(aes(ymin=m-sd, ymax=m+sd), width=.2,
+                 position=position_dodge(0.05), size = 1.1)
+```
+
+&lt;img src="lec6_files/figure-html/unnamed-chunk-16-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## ANOVA in R - model fitting
+
+
+```r
+ToothGrowth$dose &lt;- factor(ToothGrowth$dose)
+mod &lt;- lm(len ~ supp + dose, data = ToothGrowth)
+summary(mod)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; lm(formula = len ~ supp + dose, data = ToothGrowth)
+&gt; 
+&gt; Residuals:
+&gt;    Min     1Q Median     3Q    Max 
+&gt; -7.085 -2.751 -0.800  2.446  9.650 
+&gt; 
+&gt; Coefficients:
+&gt;             Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; (Intercept)  12.4550     0.9883  12.603  &lt; 2e-16 ***
+&gt; suppVC       -3.7000     0.9883  -3.744 0.000429 ***
+&gt; dose1         9.1300     1.2104   7.543 4.38e-10 ***
+&gt; dose2        15.4950     1.2104  12.802  &lt; 2e-16 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; Residual standard error: 3.828 on 56 degrees of freedom
+&gt; Multiple R-squared:  0.7623,	Adjusted R-squared:  0.7496 
+&gt; F-statistic: 59.88 on 3 and 56 DF,  p-value: &lt; 2.2e-16
+```
+
+---
+## ANOVA in R - model fitting
+
+
+```r
+anova(mod)
+```
+
+```
+&gt; Analysis of Variance Table
+&gt; 
+&gt; Response: len
+&gt;           Df  Sum Sq Mean Sq F value    Pr(&gt;F)    
+&gt; supp       1  205.35  205.35  14.017 0.0004293 ***
+&gt; dose       2 2426.43 1213.22  82.811 &lt; 2.2e-16 ***
+&gt; Residuals 56  820.43   14.65                      
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+car::Anova(mod, type = 3)
+```
+
+```
+&gt; Registered S3 methods overwritten by 'car':
+&gt;   method                          from
+&gt;   influence.merMod                lme4
+&gt;   cooks.distance.influence.merMod lme4
+&gt;   dfbeta.influence.merMod         lme4
+&gt;   dfbetas.influence.merMod        lme4
+```
+
+```
+&gt; Anova Table (Type III tests)
+&gt; 
+&gt; Response: len
+&gt;              Sum Sq Df F value    Pr(&gt;F)    
+&gt; (Intercept) 2326.91  1 158.828 &lt; 2.2e-16 ***
+&gt; supp         205.35  1  14.017 0.0004293 ***
+&gt; dose        2426.43  2  82.811 &lt; 2.2e-16 ***
+&gt; Residuals    820.43 56                      
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+## ANOVA in R - model fitting
+
+
+```r
+TG2 &lt;- ToothGrowth
+contrasts(TG2$supp)
+```
+
+```
+&gt;    VC
+&gt; OJ  0
+&gt; VC  1
+```
+
+```r
+contrasts(TG2$dose)
+```
+
+```
+&gt;     1 2
+&gt; 0.5 0 0
+&gt; 1   1 0
+&gt; 2   0 1
+```
+
+--
+
+To change the default contrasts we can do
+
+
+```r
+contrasts(TG2$supp) &lt;- contr.sum(2)
+contrasts(TG2$dose) &lt;- contr.treatment(c("0.5", "1", "2"),
+                                       base = 3)
+```
+
+---
+## ANOVA in R - model fitting
+
+Now
+
+
+```r
+contrasts(TG2$supp)
+```
+
+```
+&gt;    [,1]
+&gt; OJ    1
+&gt; VC   -1
+```
+
+```r
+contrasts(TG2$dose)
+```
+
+```
+&gt;     0.5 1
+&gt; 0.5   1 0
+&gt; 1     0 1
+&gt; 2     0 0
+```
+
+---
+## ANOVA in R - model fitting
+
+
+```r
+mod2 &lt;- lm(len ~ supp + dose, data = TG2)
+summary(mod2)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; lm(formula = len ~ supp + dose, data = TG2)
+&gt; 
+&gt; Residuals:
+&gt;    Min     1Q Median     3Q    Max 
+&gt; -7.085 -2.751 -0.800  2.446  9.650 
+&gt; 
+&gt; Coefficients:
+&gt;             Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; (Intercept)  26.1000     0.8559  30.495  &lt; 2e-16 ***
+&gt; supp1         1.8500     0.4941   3.744 0.000429 ***
+&gt; dose0.5     -15.4950     1.2104 -12.802  &lt; 2e-16 ***
+&gt; dose1        -6.3650     1.2104  -5.259 2.35e-06 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; Residual standard error: 3.828 on 56 degrees of freedom
+&gt; Multiple R-squared:  0.7623,	Adjusted R-squared:  0.7496 
+&gt; F-statistic: 59.88 on 3 and 56 DF,  p-value: &lt; 2.2e-16
+```
+
+---
+## ANOVA in R - model fitting
+
+- Changes on parametrizations as arbitrary
+
+- Usually a better idea to control the reference level of the factors
+
+---
+## ANOVA in R - comparing models
+
+
+```r
+mod3 &lt;- lm(len ~ supp * dose, data = ToothGrowth)
+summary(mod3)
+```
+
+```
+&gt; 
+&gt; Call:
+&gt; lm(formula = len ~ supp * dose, data = ToothGrowth)
+&gt; 
+&gt; Residuals:
+&gt;    Min     1Q Median     3Q    Max 
+&gt;  -8.20  -2.72  -0.27   2.65   8.27 
+&gt; 
+&gt; Coefficients:
+&gt;              Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; (Intercept)    13.230      1.148  11.521 3.60e-16 ***
+&gt; suppVC         -5.250      1.624  -3.233  0.00209 ** 
+&gt; dose1           9.470      1.624   5.831 3.18e-07 ***
+&gt; dose2          12.830      1.624   7.900 1.43e-10 ***
+&gt; suppVC:dose1   -0.680      2.297  -0.296  0.76831    
+&gt; suppVC:dose2    5.330      2.297   2.321  0.02411 *  
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; 
+&gt; Residual standard error: 3.631 on 54 degrees of freedom
+&gt; Multiple R-squared:  0.7937,	Adjusted R-squared:  0.7746 
+&gt; F-statistic: 41.56 on 5 and 54 DF,  p-value: &lt; 2.2e-16
+```
+
+---
+## ANOVA in R - comparing models
+
+We can test the interaction term doing
+
+
+```r
+anova(mod, mod3)
+```
+
+```
+&gt; Analysis of Variance Table
+&gt; 
+&gt; Model 1: len ~ supp + dose
+&gt; Model 2: len ~ supp * dose
+&gt;   Res.Df    RSS Df Sum of Sq     F  Pr(&gt;F)  
+&gt; 1     56 820.43                             
+&gt; 2     54 712.11  2    108.32 4.107 0.02186 *
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+## ANOVA in R - post-hoc tests
+
+
+- Package **`multcomp`**: library of functions for testing linear hypothesis
+
+.center[![:scale 43%](./images/mc.jpg)]
+
+---
+## ANOVA in R - post-hoc tests
+
+--
+
+- Multiple comparisons via Tukey's HSD (Honest Significant Differences)
+
+
+```r
+library(multcomp)
+test &lt;- glht(mod, linfct = mcp(dose = "Tukey"))
+summary(test)
+```
+
+```
+&gt; 
+&gt; 	 Simultaneous Tests for General Linear Hypotheses
+&gt; 
+&gt; Multiple Comparisons of Means: Tukey Contrasts
+&gt; 
+&gt; 
+&gt; Fit: lm(formula = len ~ supp + dose, data = ToothGrowth)
+&gt; 
+&gt; Linear Hypotheses:
+&gt;              Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; 1 - 0.5 == 0    9.130      1.210   7.543   &lt;1e-05 ***
+&gt; 2 - 0.5 == 0   15.495      1.210  12.802   &lt;1e-05 ***
+&gt; 2 - 1 == 0      6.365      1.210   5.259   &lt;1e-05 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; (Adjusted p values reported -- single-step method)
+```
+
+---
+## ANOVA in R - post-hoc tests
+
+- Dunnet _one-to-many_ comparisons against a reference category
+
+
+```r
+test &lt;- glht(mod, linfct = mcp(dose = "Dunnett"))
+summary(test)
+```
+
+```
+&gt; 
+&gt; 	 Simultaneous Tests for General Linear Hypotheses
+&gt; 
+&gt; Multiple Comparisons of Means: Dunnett Contrasts
+&gt; 
+&gt; 
+&gt; Fit: lm(formula = len ~ supp + dose, data = ToothGrowth)
+&gt; 
+&gt; Linear Hypotheses:
+&gt;              Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; 1 - 0.5 == 0     9.13       1.21   7.543 8.75e-10 ***
+&gt; 2 - 0.5 == 0    15.49       1.21  12.802  &lt; 1e-10 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; (Adjusted p values reported -- single-step method)
+```
+
+---
+## ANOVA in R - post-hoc tests
+
+- General linear hypothesis 
+
+
+```r
+lht &lt;- glht(mod, linfct = c("dose2 - dose1 = 0",
+                             "suppVC = 0"))
+summary(lht, test = adjusted(type = "bonferroni"))
+```
+
+```
+&gt; 
+&gt; 	 Simultaneous Tests for General Linear Hypotheses
+&gt; 
+&gt; Fit: lm(formula = len ~ supp + dose, data = ToothGrowth)
+&gt; 
+&gt; Linear Hypotheses:
+&gt;                    Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; dose2 - dose1 == 0   6.3650     1.2104   5.259 4.71e-06 ***
+&gt; suppVC == 0         -3.7000     0.9883  -3.744 0.000859 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; (Adjusted p values reported -- bonferroni method)
+```
+
+---
+## ANOVA in R - post-hoc tests
+
+- For unadjusted p-values
+
+
+```r
+lht &lt;- glht(mod, linfct = c("dose2 - dose1 = 0",
+                             "suppVC = 0"))
+summary(lht, test = adjusted(type = "none"))
+```
+
+```
+&gt; 
+&gt; 	 Simultaneous Tests for General Linear Hypotheses
+&gt; 
+&gt; Fit: lm(formula = len ~ supp + dose, data = ToothGrowth)
+&gt; 
+&gt; Linear Hypotheses:
+&gt;                    Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; dose2 - dose1 == 0   6.3650     1.2104   5.259 2.35e-06 ***
+&gt; suppVC == 0         -3.7000     0.9883  -3.744 0.000429 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; (Adjusted p values reported -- none method)
+```
+
+---
+## ANOVA in R -  post-hoc CIs
+
+
+```r
+confint(test)
+```
+
+```
+&gt; 
+&gt; 	 Simultaneous Confidence Intervals
+&gt; 
+&gt; Multiple Comparisons of Means: Dunnett Contrasts
+&gt; 
+&gt; 
+&gt; Fit: lm(formula = len ~ supp + dose, data = ToothGrowth)
+&gt; 
+&gt; Quantile = 2.2692
+&gt; 95% family-wise confidence level
+&gt;  
+&gt; 
+&gt; Linear Hypotheses:
+&gt;              Estimate lwr     upr    
+&gt; 1 - 0.5 == 0  9.1300   6.3833 11.8767
+&gt; 2 - 0.5 == 0 15.4950  12.7483 18.2417
+```
+
+---
+## ANOVA in R -  post-hoc CIs
+
+
+```r
+ci &lt;- confint(lht, calpha = 0.05/2)
+ci
+```
+
+```
+&gt; 
+&gt; 	 Simultaneous Confidence Intervals
+&gt; 
+&gt; Fit: lm(formula = len ~ supp + dose, data = ToothGrowth)
+&gt; 
+&gt; Quantile = 0.025
+&gt; 95% confidence level
+&gt;  
+&gt; 
+&gt; Linear Hypotheses:
+&gt;                    Estimate lwr     upr    
+&gt; dose2 - dose1 == 0  6.3650   6.3347  6.3953
+&gt; suppVC == 0        -3.7000  -3.7247 -3.6753
+```
+
+---
+## ANOVA in R -  post-hoc CIs
+
+
+```r
+plot(test)
+```
+
+&lt;img src="lec6_files/figure-html/unnamed-chunk-31-1.png" style="display: block; margin: auto;" /&gt;
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
