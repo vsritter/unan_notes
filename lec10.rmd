@@ -15,7 +15,7 @@ output:
       countIncrementalSlides: false
 ---
 
-```{css}
+```{css, include=FALSE}
 .tiny .remark-code {
   font-size: 70% !important;
 }

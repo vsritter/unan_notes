@@ -16,9 +16,11 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(comment = ">",
-                      cache = TRUE,
-                      cache.path = "./cache/")
+knitr::opts_chunk$set(
+	cache = TRUE,
+	cache.path = "./cache/",
+	comment = ">"
+)
 options(htmltools.dir.version = FALSE,
         dplyr.width = 60,
         dplyr.print_min = 5,

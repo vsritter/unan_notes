@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
   <head>
-    <title>NEEDBios</title>
+    <title>Biostatistics Module</title>
     <meta charset="utf-8" />
     <meta name="author" content="Victor Ritter" />
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
@@ -10,7 +10,7 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# NEEDBios
+# Biostatistics Module
 ## R Lab
 ### Victor Ritter
 ### UNC-CH
@@ -106,7 +106,7 @@ as_tibble(dietox)
 &gt; 3 4601  Evit000 Cu000 1       26.5   36.5 17.6      3
 &gt; 4 4601  Evit000 Cu000 1       26.5   40.3 28.5      4
 &gt; 5 4601  Evit000 Cu000 1       26.5   49.1 45.2      5
-&gt; # … with 856 more rows
+&gt; # ... with 856 more rows
 ```
   
 ---
@@ -136,7 +136,7 @@ dietox %&gt;%
 &gt;  8 4641     12
 &gt;  9 4643     12
 &gt; 10 4645     12
-&gt; # … with 62 more rows
+&gt; # ... with 62 more rows
 ```
 
 ---
@@ -162,7 +162,7 @@ pig_wide
 &gt; 3 4603   27.6  30.6  38.7  47.2  54.1  61.5  68.5  75.2
 &gt; 4 4605   31.5  34.8  40.7  47.7  55.9  62.2  70.7  78  
 &gt; 5 4641   27.1  33    42.5  50.1  56.5  63    72.5  80.5
-&gt; # … with 67 more rows, and 4 more variables: `9` &lt;dbl&gt;,
+&gt; # ... with 67 more rows, and 4 more variables: `9` &lt;dbl&gt;,
 &gt; #   `10` &lt;dbl&gt;, `11` &lt;dbl&gt;, `12` &lt;dbl&gt;
 ```
 
@@ -237,13 +237,13 @@ summary(geeAr1)
 &gt;     corstr = "ar1")
 &gt; 
 &gt;  Coefficients:
-&gt;             Estimate Std.err    Wald Pr(&gt;|W|)    
-&gt; (Intercept)  17.6124  1.3354  173.95   &lt;2e-16 ***
-&gt; Time          6.7324  0.0756 7921.11   &lt;2e-16 ***
-&gt; EvitEvit100   2.3782  1.7676    1.81     0.18    
-&gt; EvitEvit200  -0.9779  1.7369    0.32     0.57    
-&gt; CuCu035      -0.3976  1.3928    0.08     0.78    
-&gt; CuCu175       1.2376  1.7376    0.51     0.48    
+&gt;             Estimate  Std.err     Wald Pr(&gt;|W|)    
+&gt; (Intercept) 17.61237  1.33538  173.950   &lt;2e-16 ***
+&gt; Time         6.73236  0.07564 7921.106   &lt;2e-16 ***
+&gt; EvitEvit100  2.37823  1.76758    1.810    0.178    
+&gt; EvitEvit200 -0.97794  1.73691    0.317    0.573    
+&gt; CuCu035     -0.39762  1.39284    0.081    0.775    
+&gt; CuCu175      1.23760  1.73760    0.507    0.476    
 &gt; ---
 &gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 &gt; 
@@ -251,12 +251,12 @@ summary(geeAr1)
 &gt; Estimated Scale Parameters:
 &gt; 
 &gt;             Estimate Std.err
-&gt; (Intercept)     50.5    9.41
+&gt; (Intercept)    50.54   9.405
 &gt;   Link = identity 
 &gt; 
 &gt; Estimated Correlation Parameters:
 &gt;       Estimate Std.err
-&gt; alpha    0.933  0.0116
+&gt; alpha   0.9327 0.01157
 &gt; Number of clusters:   72  Maximum cluster size: 12
 ```
 ]
@@ -314,8 +314,8 @@ MuMIn::QIC(geeAr1)
 ```
 
 ```
-&gt; QIC 
-&gt; 906
+&gt;      QIC 
+&gt; 906.3571
 ```
 
 ```r
@@ -323,8 +323,8 @@ MuMIn::QICu(geeAr1)
 ```
 
 ```
-&gt; QICu 
-&gt;  835
+&gt;     QICu 
+&gt; 834.5227
 ```
 
 ```r
@@ -332,8 +332,8 @@ MuMIn::QIC(geeInd)
 ```
 
 ```
-&gt; QIC 
-&gt; 958
+&gt;      QIC 
+&gt; 957.5593
 ```
 
 ```r
@@ -387,30 +387,31 @@ summary(mm1)
 .tiny[
 
 ```
-&gt; Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+&gt; Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+&gt; lmerModLmerTest]
 &gt; Formula: Weight ~ Time + Evit + Cu + (1 | Pig)
 &gt;    Data: dietox
 &gt; 
-&gt; REML criterion at convergence: 4793
+&gt; REML criterion at convergence: 4792.7
 &gt; 
 &gt; Scaled residuals: 
-&gt;    Min     1Q Median     3Q    Max 
-&gt; -4.716 -0.562 -0.087  0.489  4.767 
+&gt;     Min      1Q  Median      3Q     Max 
+&gt; -4.7160 -0.5621 -0.0874  0.4886  4.7669 
 &gt; 
 &gt; Random effects:
 &gt;  Groups   Name        Variance Std.Dev.
-&gt;  Pig      (Intercept) 39.7     6.30    
-&gt;  Residual             11.4     3.37    
+&gt;  Pig      (Intercept) 39.71    6.302   
+&gt;  Residual             11.37    3.371   
 &gt; Number of obs: 861, groups:  Pig, 72
 &gt; 
 &gt; Fixed effects:
-&gt;             Estimate Std. Error       df t value Pr(&gt;|t|)    
-&gt; (Intercept)  15.0984     1.7530  69.0854    8.61  1.5e-12 ***
-&gt; Time          6.9425     0.0334 788.0328  207.94  &lt; 2e-16 ***
-&gt; EvitEvit100   2.0413     1.8613  67.0033    1.10     0.28    
-&gt; EvitEvit200  -1.1103     1.8429  66.9972   -0.60     0.55    
-&gt; CuCu035      -0.7651     1.8430  67.0046   -0.42     0.68    
-&gt; CuCu175       1.7871     1.8614  67.0101    0.96     0.34    
+&gt;              Estimate Std. Error        df t value Pr(&gt;|t|)    
+&gt; (Intercept)  15.09840    1.75295  69.08536   8.613  1.5e-12 ***
+&gt; Time          6.94255    0.03339 788.03285 207.940  &lt; 2e-16 ***
+&gt; EvitEvit100   2.04129    1.86132  67.00333   1.097    0.277    
+&gt; EvitEvit200  -1.11029    1.84293  66.99715  -0.602    0.549    
+&gt; CuCu035      -0.76514    1.84298  67.00459  -0.415    0.679    
+&gt; CuCu175       1.78712    1.86137  67.01007   0.960    0.340    
 &gt; ---
 &gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 &gt; 
@@ -433,6 +434,23 @@ broom.mixed::glance(mm1)
 ```
 
 ```
+&gt; Registered S3 methods overwritten by 'broom.mixed':
+&gt;   method         from 
+&gt;   augment.lme    broom
+&gt;   augment.merMod broom
+&gt;   glance.lme     broom
+&gt;   glance.merMod  broom
+&gt;   glance.stanreg broom
+&gt;   tidy.brmsfit   broom
+&gt;   tidy.gamlss    broom
+&gt;   tidy.lme       broom
+&gt;   tidy.merMod    broom
+&gt;   tidy.rjags     broom
+&gt;   tidy.stanfit   broom
+&gt;   tidy.stanreg   broom
+```
+
+```
 &gt; # A tibble: 1 x 6
 &gt;   sigma logLik   AIC   BIC REMLcrit df.residual
 &gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt;
@@ -447,13 +465,13 @@ broom.mixed::tidy(mm1, conf.int = T)
 &gt; # A tibble: 8 x 10
 &gt;   effect group term  estimate std.error statistic    df
 &gt;   &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;
-&gt; 1 fixed  &lt;NA&gt;  (Int…   15.1      1.75       8.61   69.1
+&gt; 1 fixed  &lt;NA&gt;  (Int~   15.1      1.75       8.61   69.1
 &gt; 2 fixed  &lt;NA&gt;  Time     6.94     0.0334   208.    788. 
-&gt; 3 fixed  &lt;NA&gt;  Evit…    2.04     1.86       1.10   67.0
-&gt; 4 fixed  &lt;NA&gt;  Evit…   -1.11     1.84      -0.602  67.0
-&gt; 5 fixed  &lt;NA&gt;  CuCu…   -0.765    1.84      -0.415  67.0
-&gt; # … with 3 more rows, and 3 more variables: p.value &lt;dbl&gt;,
-&gt; #   conf.low &lt;dbl&gt;, conf.high &lt;dbl&gt;
+&gt; 3 fixed  &lt;NA&gt;  Evit~    2.04     1.86       1.10   67.0
+&gt; 4 fixed  &lt;NA&gt;  Evit~   -1.11     1.84      -0.602  67.0
+&gt; 5 fixed  &lt;NA&gt;  CuCu~   -0.765    1.84      -0.415  67.0
+&gt; # ... with 3 more rows, and 3 more variables:
+&gt; #   p.value &lt;dbl&gt;, conf.low &lt;dbl&gt;, conf.high &lt;dbl&gt;
 ```
 
 ---
@@ -490,9 +508,9 @@ anova(fix1, fix2, refit = FALSE)
 &gt; Models:
 &gt; fix2: Weight ~ Time + Evit + (1 | Pig)
 &gt; fix1: Weight ~ Time + Evit + Cu + (1 | Pig)
-&gt;      Df  AIC  BIC logLik deviance Chisq Chi Df Pr(&gt;Chisq)
-&gt; fix2  6 4815 4843  -2401     4803                        
-&gt; fix1  8 4816 4855  -2400     4800  2.17      2       0.34
+&gt;      Df    AIC    BIC  logLik deviance Chisq Chi Df Pr(&gt;Chisq)
+&gt; fix2  6 4814.7 4843.2 -2401.3   4802.7                        
+&gt; fix1  8 4816.5 4854.6 -2400.2   4800.5 2.171      2     0.3377
 ```
 
 ---
@@ -515,9 +533,9 @@ anova(rd1, rd2, refit = FALSE)
 &gt; Models:
 &gt; rd1: Weight ~ Time + Evit + (1 | Pig)
 &gt; rd2: Weight ~ Time + Evit + (1 + Time | Pig)
-&gt;     Df  AIC  BIC logLik deviance Chisq Chi Df Pr(&gt;Chisq)    
-&gt; rd1  6 4813 4841  -2400     4801                            
-&gt; rd2  8 4444 4482  -2214     4428   372      2     &lt;2e-16 ***
+&gt;     Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(&gt;Chisq)    
+&gt; rd1  6 4812.6 4841.1 -2400.3   4800.6                             
+&gt; rd2  8 4444.2 4482.2 -2214.1   4428.2 372.43      2  &lt; 2.2e-16 ***
 &gt; ---
 &gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -539,7 +557,7 @@ devdiff &lt;- as.numeric(dev0-dev1); devdiff
 ```
 
 ```
-&gt; [1] 999
+&gt; [1] 999.4607
 ```
 
 ```r
@@ -556,7 +574,7 @@ cat('Chi-square =', devdiff, '(df=', dfdiff,'), p =',
 ```
 
 ```
-&gt; Chi-square = 999 (df= 1 ), p = 2.35e-219
+&gt; Chi-square = 999.4607 (df= 1 ), p = 2.352342e-219
 ```
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>

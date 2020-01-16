@@ -503,15 +503,6 @@ car::Anova(mod, type = 3)
 ```
 
 ```
-&gt; Registered S3 methods overwritten by 'car':
-&gt;   method                          from
-&gt;   influence.merMod                lme4
-&gt;   cooks.distance.influence.merMod lme4
-&gt;   dfbeta.influence.merMod         lme4
-&gt;   dfbetas.influence.merMod        lme4
-```
-
-```
 &gt; Anova Table (Type III tests)
 &gt; 
 &gt; Response: len
@@ -716,9 +707,9 @@ summary(test)
 &gt; 
 &gt; Linear Hypotheses:
 &gt;              Estimate Std. Error t value Pr(&gt;|t|)    
-&gt; 1 - 0.5 == 0    9.130      1.210   7.543   &lt;1e-05 ***
-&gt; 2 - 0.5 == 0   15.495      1.210  12.802   &lt;1e-05 ***
-&gt; 2 - 1 == 0      6.365      1.210   5.259   &lt;1e-05 ***
+&gt; 1 - 0.5 == 0    9.130      1.210   7.543   &lt;1e-04 ***
+&gt; 2 - 0.5 == 0   15.495      1.210  12.802   &lt;1e-04 ***
+&gt; 2 - 1 == 0      6.365      1.210   5.259   &lt;1e-04 ***
 &gt; ---
 &gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 &gt; (Adjusted p values reported -- single-step method)
