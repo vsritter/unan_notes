@@ -560,7 +560,7 @@ https://rstudio.com/resources/cheatsheets/
   - Literally, all over the internet. Just be careful with your Stats methods sources. There is a lot of junk statistics written online
 
 ---
-class:center
+class:middle
 
 ## Final comment about R
 
