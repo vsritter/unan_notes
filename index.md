@@ -1,11 +1,7 @@
 
-## Biostatistics Module Notes
+## Biostatistics Module - R Lab Notes
 
-### Link
-
-Day 1 - 01/20/2020
+Day 1 - 01/20/2020 ([notes](/lec1.html), [exercises](/ex1.html)) 
  - Reproducible research
  - Getting started with R/RStudio
  - Basic descriptive statistics in R
-
- [Notes](/lec1.html) [Exercises](/ex1.html) 
