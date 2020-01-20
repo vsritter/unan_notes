@@ -14,7 +14,7 @@ class: center, middle, inverse, title-slide
 ## R Lab
 ### Victor Ritter
 ### UNC-CH
-### Jan 2020
+### 20/01/2020
 
 ---
 
@@ -69,10 +69,23 @@ Meeting from 2 to 5 pm with ~15 min break
   - Week 1 - R exercises
   
   - Week 2 - Data analysis project
-
+  
+  - Ask questions ("how do I do _this_ in R?")
+  
 ---
-## Schedule
+## Today's Agenda
 
+--
+
+- Reproducible research
+
+--
+
+- Starting with R and RStudio
+
+--
+
+- Basic descriptive statistics in R
 
 ---
 class: center, middle, inverse
@@ -761,7 +774,7 @@ x[1:5]
 ```
 
 ```
-&gt; [1] 1.520392 3.535541 2.610084 2.716481 1.371099
+&gt; [1] 2.904551 2.064265 1.938571 2.850220 1.236719
 ```
 
 ```r
@@ -802,11 +815,29 @@ https://rstudio.com/resources/cheatsheets/
 ---
 ## Resources for learning R
 
+- RStudio publishes a lot of R/RStudio free resources
+
+  - RStudio Webnar Series
+  https://resources.rstudio.com/webinars
 
 --
-### Final comment
 
-r is in constant evolution
+  - RStudio publications (free ebooks and tutorials)
+  
+.center[![:border](./images/rbooks.png)]
+
+--
+
+  - Literally, all over the internet. Just be careful with your Stats methods sources. There is a lot of junk statistics written online
+
+---
+class:center
+
+## Final comment about R
+
+- It's a language in constant and rapid evolution.
+
+- I constantly "Google" stuff that I know how to do just to see if a new technique shows up
 
 ---
 class: middle, center
@@ -849,7 +880,7 @@ age_cat[1:5]
 ```
 
 ```
-&gt; [1] (10,25] (10,25] (25,99] (25,99] (25,99]
+&gt; [1] (10,25] (25,99] (10,25] (10,25] (25,99]
 &gt; Levels: (0,10] (10,25] (25,99]
 ```
 
@@ -863,7 +894,7 @@ x[1:5]
 ```
 
 ```
-&gt; [1] 3 2 2 4 1
+&gt; [1] 1 5 3 3 3
 ```
 
 ```r
@@ -871,7 +902,7 @@ mean(x)
 ```
 
 ```
-&gt; [1] 2.766667
+&gt; [1] 2.866667
 ```
 
 ```r
@@ -902,7 +933,7 @@ table(x)
 ```
 &gt; x
 &gt; 1 2 3 4 5 
-&gt; 7 6 8 5 4
+&gt; 6 6 8 6 4
 ```
 
 ```r
@@ -912,7 +943,7 @@ prop.table(table(x))
 ```
 &gt; x
 &gt;         1         2         3         4         5 
-&gt; 0.2333333 0.2000000 0.2666667 0.1666667 0.1333333
+&gt; 0.2000000 0.2000000 0.2666667 0.2000000 0.1333333
 ```
 
 - Finding the mode manually
@@ -939,7 +970,7 @@ var(x)
 ```
 
 ```
-&gt; [1] 1.84023
+&gt; [1] 1.774713
 ```
 
 ```r
@@ -947,7 +978,7 @@ sd(x)
 ```
 
 ```
-&gt; [1] 1.356551
+&gt; [1] 1.332183
 ```
 
 ```r
@@ -1005,7 +1036,7 @@ m3/(m2^1.5)
 ```
 
 ```
-&gt; [1] 0.2635601
+&gt; [1] 0.2315873
 ```
 
 ```r
@@ -1014,7 +1045,7 @@ m4/(m2^2)
 ```
 
 ```
-&gt; [1] 2.323224
+&gt; [1] 2.360322
 ```
 
 ---
@@ -1062,18 +1093,22 @@ freq
 &gt;   1  7  7
 ```
 
+--
+
+
 ```r
-chisq.test(freq)
+freq &lt;- xtabs(~ vs + am, data = mtcars)
+freq
 ```
 
 ```
-&gt; 
-&gt; 	Pearson's Chi-squared test with Yates' continuity correction
-&gt; 
-&gt; data:  freq
-&gt; X-squared = 0.34754, df = 1, p-value = 0.5555
+&gt;    am
+&gt; vs   0  1
+&gt;   0 12  6
+&gt;   1  7  7
 ```
 
+- **xtabs()** is useful when you already have collapsed data
 ---
 ## Histogram
 
@@ -1083,7 +1118,7 @@ hist(mtcars$mpg, main = "Histogram of mpg",
      xlab = " Miles/(US) gallon")
 ```
 
-&lt;img src="lec1_files/figure-html/unnamed-chunk-26-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec1_files/figure-html/unnamed-chunk-27-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Histogram
@@ -1093,7 +1128,7 @@ hist(mtcars$mpg, main = "Histogram of mpg",
 hist(mtcars$mpg, freq = FALSE)
 ```
 
-&lt;img src="lec1_files/figure-html/unnamed-chunk-27-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec1_files/figure-html/unnamed-chunk-28-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Box-plot
@@ -1103,7 +1138,7 @@ hist(mtcars$mpg, freq = FALSE)
 boxplot(mtcars$mpg)
 ```
 
-&lt;img src="lec1_files/figure-html/unnamed-chunk-28-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec1_files/figure-html/unnamed-chunk-29-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Box-plot
@@ -1115,7 +1150,7 @@ boxplot(mpg ~ cyl, data = mtcars,
         xlab = "Number of cylinders")
 ```
 
-&lt;img src="lec1_files/figure-html/unnamed-chunk-29-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec1_files/figure-html/unnamed-chunk-30-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Scatterplot
@@ -1126,7 +1161,7 @@ plot(x = mtcars$wt, y = mtcars$hp,
      pch = 20, col = 2, las = 1, cex=2)
 ```
 
-&lt;img src="lec1_files/figure-html/unnamed-chunk-30-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec1_files/figure-html/unnamed-chunk-31-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Barplot
@@ -1140,7 +1175,7 @@ barplot(dt, main = "Survival of Each Class",
         xlab = "Class", col = c("red","green"))
 ```
 
-&lt;img src="lec1_files/figure-html/unnamed-chunk-31-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec1_files/figure-html/unnamed-chunk-32-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Barplot
@@ -1154,7 +1189,7 @@ legend("topleft", c("Not survived","Survived"),
        fill = c("red","green"))
 ```
 
-&lt;img src="lec1_files/figure-html/unnamed-chunk-32-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec1_files/figure-html/unnamed-chunk-33-1.png" style="display: block; margin: auto;" /&gt;
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

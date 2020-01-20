@@ -3,7 +3,7 @@ title: "Biostatistics Module"
 subtitle: "R Lab"
 author: "Victor Ritter"
 institute: "UNC-CH"
-date: "Jan 2020"
+date: "20/01/2020"
 output:
   xaringan::moon_reader:
     lib_dir: libs
@@ -73,10 +73,23 @@ Meeting from 2 to 5 pm with ~15 min break
   - Week 1 - R exercises
   
   - Week 2 - Data analysis project
-
+  
+  - Ask questions ("how do I do _this_ in R?")
+  
 ---
-## Schedule
+## Today's Agenda
 
+--
+
+- Reproducible research
+
+--
+
+- Starting with R and RStudio
+
+--
+
+- Basic descriptive statistics in R
 
 ---
 class: center, middle, inverse
@@ -531,11 +544,29 @@ https://rstudio.com/resources/cheatsheets/
 ---
 ## Resources for learning R
 
+- RStudio publishes a lot of R/RStudio free resources
+
+  - RStudio Webnar Series
+  https://resources.rstudio.com/webinars
 
 --
-### Final comment
 
-r is in constant evolution
+  - RStudio publications (free ebooks and tutorials)
+  
+.center[![:border](./images/rbooks.png)]
+
+--
+
+  - Literally, all over the internet. Just be careful with your Stats methods sources. There is a lot of junk statistics written online
+
+---
+class:center
+
+## Final comment about R
+
+- It's a language in constant and rapid evolution.
+
+- I constantly "Google" stuff that I know how to do just to see if a new technique shows up
 
 ---
 class: middle, center
@@ -641,9 +672,16 @@ prop.table(freq)
 ```{r}
 freq <- table(mtcars$vs, mtcars$am)
 freq
-chisq.test(freq)
 ```
 
+--
+
+```{r}
+freq <- xtabs(~ vs + am, data = mtcars)
+freq
+```
+
+- **xtabs()** is useful when you already have collapsed data
 ---
 ## Histogram
 
