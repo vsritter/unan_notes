@@ -64,7 +64,7 @@ even <- c(2,4,6,8,10)
 
 ### Task 3
 
-Repeat task 1 using the function seq():
+Repeat task 2 using the function seq():
 
 If you do not know how to use the seq() function read the documentation acessing by typing ```?seq``` on the console.
 
