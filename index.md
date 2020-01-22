@@ -2,19 +2,19 @@
 ## Biostatistics Module Notes
 
 Day 1 - 01/20/2020 
-- Stats Notes \[[part 1](/stat1a_descriptive_statistics.ppt)\] \[[part 2](/stat1b_categorical_data.ppt)\]
+- Stats Notes \[[ppt-1/2](/stat1a_descriptive_statistics.ppt)\] \[[ppt-2/2](/stat1b_categorical_data.ppt)\]
 - Lab Notes \[[html](/lec1.html)\]
 - Exercises \[[html](/ex1.html)\]
 
 Day 2 - 01/21/2020 
 - Stats Notes \[[ppt](/stat2_sample_size_power.ppt)\]
 - Lab Notes \[[html](/lec1b.html)\]
-- Exercises
+- Exercises \[[html](/ex1.html)\]
 
 Day 3 - 01/22/2020 
-- Stats Notes
-- Lab Notes
-- Exercises
+- Stats Notes \[[ppt](/stat3_hypothesis_CI.ppt)\]
+- Lab Notes \[[html](/lec2.html)\]
+- Exercises \[[html](/ex2.html)\]
 
 Day 4 - 01/23/2020 
 - Stats Notes

@@ -1,0 +1,246 @@
+---
+title: "Laboratory 2 - Introduction to tidyverse"
+author: Tamy Tsujimoto
+date: "`r format(Sys.time(), '%m/%d/%Y')`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: no
+    toc_depth: 2
+    theme: paper 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = FALSE)
+```
+
+# Instructions
+
+- You should submit a R code with the template 'Your-Name.R'
+- In your code, before starting a new task, include a block comment with the task number:
+
+```{r}
+#*********************************************************************
+#                       R Code for Task X
+#*********************************************************************
+```
+
+- For Tasks 1 to 9 you will be using the `student-mat` dataset from [UCI](https://archive.ics.uci.edu/ml/datasets/Student+Performance#).
+
+# Question 1: R Packages and data import
+
+## Task 1
+
+If you have not done so, install the `tidyverse` package using the `install.package` function.
+
+```{r eval = FALSE}
+install.packages("tidyverse")
+```
+
+## Task 2
+
+Load the `tidyverse` package using the `library()` function
+
+```{r}
+library(tidyverse)
+```
+
+## Task 3
+
+Import the `student-mat.csvt` using `read.csv()` with option `sep = ';'` and use the function `glimpse()` to check the dataset 
+
+```{r}
+
+math <- read.csv('data/student/student-mat.csv', header = TRUE, sep = ';')
+glimpse(math)
+
+```
+
+# Question 2: Introduction to tidyverse
+
+## Task 4
+
+Create a new dataset containing only the following variables:
+
+- sex: student's sex (binary: 'F' - female or 'M' - male) 
+- age: student's age (numeric: from 15 to 22)
+- address: student's home address type (binary: 'U' - urban or 'R' - rural) 
+- traveltime: home to school travel time (numeric: 1 - <15 min., 2 - 15 to 30 min., 3 - 30 min. to 1 hour, or 4 - >1 hour) 
+- G1: first period grade (numeric: from 0 to 20) 
+- G2: second period grade (numeric: from 0 to 20) 
+- G3: final grade (numeric: from 0 to 20, output target)
+
+```{r}
+
+math <-
+  math %>% 
+  select(sex, age, address, traveltime, G1, G2, G3)
+
+glimpse(math)
+
+```
+
+## Task 5
+
+Using the dataset created in Task 4, filter the female students with age 18 or older from rural area.
+
+```{r}
+
+math %>% 
+  filter(sex == 'F', age >= 18, address == 'R')
+
+```
+
+## Task 6
+
+Sort the filtered observations from Task 5 by final grade.
+
+```{r}
+
+math %>% 
+  filter(sex == 'F', age >= 18, address == 'R') %>% 
+  arrange(G3)
+
+```
+
+## Task 7
+
+Create a new variable `G_avg` by averaging the variables `G1`, `G2`, `G3` for each student.
+Use the `glimpse()` function to check your result.
+
+```{r}
+
+math <-
+  math %>% 
+  mutate(G_avg = (G1+G2+G3)/3) 
+
+glimpse(math)
+
+```
+
+## Task 8
+
+Create a new variable `age_cat` grouping the variable `age` into:
+
+- '< 18'
+- '18-20'
+- '> 20'
+
+Use the `glimpse()` function to check your result.
+
+```{r}
+
+math <-
+  math %>% 
+  mutate(age_cat = ifelse(age < 18, '< 18', 
+                          ifelse(age <= 20, '18-20', '> 20'))) 
+
+glimpse(math)
+
+```
+
+## Task 9
+
+Compute the number of observations, mean and standard deviation of `G_avg` for each level of `age_cat` using `group_by()` and `summarise()`
+
+```{r}
+
+math %>% 
+  group_by(age_cat) %>% 
+  summarise(n = n(),
+            mean = mean(G_avg),
+            sd = sd(G_avg))
+```
+
+## Task 10
+
+Use the `gather()` function to create a dataset `math_long` reshaping the `math` dataset into a long format containing three observations per student, the variable `grade` containing the numeric value of all three grades and the variable `period` containing the period of the grade (G1 for first, G2 second, and G3 for final). 
+
+1) Create a variable `id` using `mutate(id = row_number())`
+2) Use the function `gather` with appropriate options
+3) Sort by `id`
+
+```{r}
+
+math_long <- 
+  math %>% 
+  mutate(id = row_number()) %>% 
+  gather(key = 'period',
+         value = 'grade',
+         c(G1, G2, G3)) %>% 
+  arrange(id)
+  
+
+glimpse(math_long)
+
+```
+
+## Task 11
+
+Use the `spread()` function to create a dataset `math_wide` reshaping the `math_long` dataset into a wide format containing one observations per student and the original variable names `G1`, `G2`, `G3` 
+
+1) Use the function `gather` with appropriate options
+2) Sort by `id`
+
+```{r}
+
+math_wide <- 
+  math_long %>% 
+  spread(key = 'period',
+         value = 'grade') %>% 
+  arrange(id)
+
+glimpse(math_wide)
+
+```
+
+# Question 3: Merging and datasets
+
+For Tasks 12 and 13 you will be using the built in dataset `mtcars`.
+First, run the following code to create the toy datasets to be used in the tasks:
+
+```{r}
+
+mtcars1 <-
+  mtcars %>% 
+  mutate(id = rownames(mtcars)) %>%
+  filter(cyl %in% c(6,8)) %>% 
+  select(id, mpg:drat)
+
+mtcars2 <-
+  mtcars %>% 
+  mutate(id = rownames(mtcars)) %>% 
+  select(id, wt:carb)
+
+```
+
+## Task 12
+
+Create a dataset called `mtcars_t10` by merging `mtcars1` and `mtcars2` using full join:
+
+```{r}
+
+mtcars_t10 <-
+  mtcars1 %>% 
+  full_join(mtcars2, by = 'id')
+
+glimpse(mtcars_t10)
+
+```
+
+## Task 13
+
+Create a dataset called `mtcars_t11` by merging `mtcars1` and `mtcars2` using inner join:
+
+```{r}
+
+mtcars_t11 <-
+  mtcars1 %>% 
+  inner_join(mtcars2, by = 'id')
+
+glimpse(mtcars_t11)
+
+```
+
+
+

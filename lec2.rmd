@@ -3,7 +3,7 @@ title: "Biostatistics Module"
 subtitle: "R Lab"
 author: "Victor Ritter"
 institute: "UNC-CH"
-date: "Jan 2020"
+date: "01/22/2020"
 output:
   xaringan::moon_reader:
     lib_dir: libs
@@ -13,11 +13,13 @@ output:
       # highlightStyle: github
       # highlightLines: true
       countIncrementalSlides: false
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-	cache = TRUE,
+	cache = FALSE,
 	cache.path = "./cache/",
 	comment = ">"
 )

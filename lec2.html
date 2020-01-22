@@ -4,6 +4,7 @@
     <title>Biostatistics Module</title>
     <meta charset="utf-8" />
     <meta name="author" content="Victor Ritter" />
+    <meta name="date" content="2020-01-22" />
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
   </head>
   <body>
@@ -14,7 +15,7 @@ class: center, middle, inverse, title-slide
 ## R Lab
 ### Victor Ritter
 ### UNC-CH
-### Jan 2020
+### 01/22/2020
 
 ---
 
@@ -168,10 +169,10 @@ glimpse(h1n1)
 ```
 &gt; Observations: 51
 &gt; Variables: 4
-&gt; $ State      &lt;fct&gt; Alabama, Alaska, Arizona, Arkansas, ...
-&gt; $ Cases      &lt;int&gt; 477, 272, 947, 131, 3161, 171, 1713,...
-&gt; $ Deaths     &lt;int&gt; 0, 0, 15, 0, 52, 0, 8, 0, 0, 23, 1, ...
-&gt; $ Population &lt;int&gt; 4661900, 686293, 6500180, 2855390, 3...
+&gt; $ State      &lt;fct&gt; Alabama, Alaska, Arizona, Arkansas, Ca…
+&gt; $ Cases      &lt;int&gt; 477, 272, 947, 131, 3161, 171, 1713, 3…
+&gt; $ Deaths     &lt;int&gt; 0, 0, 15, 0, 52, 0, 8, 0, 0, 23, 1, 3,…
+&gt; $ Population &lt;int&gt; 4661900, 686293, 6500180, 2855390, 367…
 ```
 
 ---
@@ -287,7 +288,7 @@ h1n1
 &gt; 3 Arizona      947     15    6500180
 &gt; 4 Arkansas     131      0    2855390
 &gt; 5 California  3161     52   36756666
-&gt; # ... with 46 more rows
+&gt; # … with 46 more rows
 ```
 
 ---
@@ -337,7 +338,7 @@ h1n1 %&gt;%
 &gt; 3 Florida     2915     23   18328340
 &gt; 4 Illinois    3404     17   12901563
 &gt; 5 New Jersey  1414     15    8682661
-&gt; # ... with 3 more rows
+&gt; # … with 3 more rows
 ```
 
 
@@ -388,7 +389,7 @@ h1n1 %&gt;%
 &gt; 3 Connecticut  1713      8    3501252
 &gt; 4 Florida      2915     23   18328340
 &gt; 5 Hawaii       1424      3    1288198
-&gt; # ... with 8 more rows
+&gt; # … with 8 more rows
 ```
 
 ---
@@ -449,7 +450,7 @@ infert
 &gt; 3 0-5yrs       39      6       2     1           0       3
 &gt; 4 0-5yrs       34      4       2     1           0       4
 &gt; 5 6-11yrs      35      3       1     1           1       5
-&gt; # ... with 243 more rows, and 1 more variable:
+&gt; # … with 243 more rows, and 1 more variable:
 &gt; #   pooled.stratum &lt;dbl&gt;
 ```
 
@@ -470,7 +471,7 @@ infert %&gt;% select(age, case)
 &gt; 3    39     1
 &gt; 4    34     1
 &gt; 5    35     1
-&gt; # ... with 243 more rows
+&gt; # … with 243 more rows
 ```
 
 
@@ -487,7 +488,7 @@ infert %&gt;% select(education:case)
 &gt; 3 0-5yrs       39      6       2     1
 &gt; 4 0-5yrs       34      4       2     1
 &gt; 5 6-11yrs      35      3       1     1
-&gt; # ... with 243 more rows
+&gt; # … with 243 more rows
 ```
 
 ---
@@ -507,7 +508,7 @@ infert %&gt;% select(contains("stratum"))
 &gt; 3       3              4
 &gt; 4       4              2
 &gt; 5       5             32
-&gt; # ... with 243 more rows
+&gt; # … with 243 more rows
 ```
 
 
@@ -524,7 +525,7 @@ infert %&gt;% select(-education, -age)
 &gt; 3      6       2     1           0       3              4
 &gt; 4      4       2     1           0       4              2
 &gt; 5      3       1     1           1       5             32
-&gt; # ... with 243 more rows
+&gt; # … with 243 more rows
 ```
 
 ---
@@ -544,7 +545,7 @@ infert %&gt;% arrange(age)
 &gt; 3 6-11yrs      21      1       0     0           1       9
 &gt; 4 12+ yrs      21      1       0     0           1      67
 &gt; 5 6-11yrs      21      1       1     0           0       9
-&gt; # ... with 243 more rows, and 1 more variable:
+&gt; # … with 243 more rows, and 1 more variable:
 &gt; #   pooled.stratum &lt;dbl&gt;
 ```
 
@@ -562,7 +563,7 @@ infert %&gt;% arrange(spontaneous, desc(age))
 &gt; 3 0-5yrs       42      1       1     1           0       2
 &gt; 4 6-11yrs      42      1       1     1           0      33
 &gt; 5 0-5yrs       42      1       0     0           0       2
-&gt; # ... with 243 more rows, and 1 more variable:
+&gt; # … with 243 more rows, and 1 more variable:
 &gt; #   pooled.stratum &lt;dbl&gt;
 ```
 
@@ -590,7 +591,7 @@ print(h1n1, n = 10)
 &gt;  8 Delaware               381      0        873
 &gt;  9 District of Columbia    45      0        592
 &gt; 10 Florida               2915     23      18328
-&gt; # ... with 41 more rows
+&gt; # … with 41 more rows
 ```
 
 ---
@@ -617,7 +618,7 @@ h1n1 %&gt;%
 &gt;  8 Delaware               381      0        873 0      
 &gt;  9 District of Columbia    45      0        592 0      
 &gt; 10 Florida               2915     23      18328 0.00789
-&gt; # ... with 41 more rows
+&gt; # … with 41 more rows
 ```
 
 ---
@@ -635,17 +636,17 @@ h1n1 %&gt;%
 &gt; # A tibble: 51 x 6
 &gt;    State              Cases Deaths Population aux   Rate    
 &gt;    &lt;fct&gt;              &lt;int&gt;  &lt;int&gt;      &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;   
-&gt;  1 Alabama              477      0       4662 0%    No deat~
-&gt;  2 Alaska               272      0        686 0%    No deat~
+&gt;  1 Alabama              477      0       4662 0%    No deat…
+&gt;  2 Alaska               272      0        686 0%    No deat…
 &gt;  3 Arizona              947     15       6500 1.6%  1.6%    
-&gt;  4 Arkansas             131      0       2855 0%    No deat~
+&gt;  4 Arkansas             131      0       2855 0%    No deat…
 &gt;  5 California          3161     52      36757 1.6%  1.6%    
-&gt;  6 Colorado             171      0       4939 0%    No deat~
+&gt;  6 Colorado             171      0       4939 0%    No deat…
 &gt;  7 Connecticut         1713      8       3501 0.5%  0.5%    
-&gt;  8 Delaware             381      0        873 0%    No deat~
-&gt;  9 District of Colum~    45      0        592 0%    No deat~
+&gt;  8 Delaware             381      0        873 0%    No deat…
+&gt;  9 District of Colum…    45      0        592 0%    No deat…
 &gt; 10 Florida             2915     23      18328 0.8%  0.8%    
-&gt; # ... with 41 more rows
+&gt; # … with 41 more rows
 ```
 
 ---
@@ -673,7 +674,7 @@ h1n1 %&gt;% print(n = 10)
 &gt;  8 8_Delaware               381      0        873
 &gt;  9 9_District of Columbia    45      0        592
 &gt; 10 10_Florida              2915     23      18328
-&gt; # ... with 41 more rows
+&gt; # … with 41 more rows
 ```
 
 ---
@@ -700,7 +701,7 @@ h1n1 %&gt;% print(n = 10)
 &gt;  8 8     Delaware               381      0        873
 &gt;  9 9     District of Columbia    45      0        592
 &gt; 10 10    Florida               2915     23      18328
-&gt; # ... with 41 more rows
+&gt; # … with 41 more rows
 ```
 
 ---
