@@ -15,7 +15,7 @@ output:
       countIncrementalSlides: false
 ---
 
-```{css}
+```{css, include=FALSE}
 .tiny .remark-code {
   font-size: 70% !important;
 }
@@ -82,6 +82,11 @@ dat
 
 ---
 ## Analysis of 2x2 tables
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(epiR)
+```
+
 ```{r}
 epi.2by2(dat = as.table(dat), method = "cross.sectional",
          conf.level = 0.95, units = 100, outcome = "as.columns")
@@ -141,7 +146,8 @@ EXAMPLE 2: This example shows how the table function can be used to pass data to
 Exposure (rows) = smoke. Outcome (columns) = low.
 
 ```{r}
-dat1 <- birthwt; head(dat1)
+dat1 <- MASS::birthwt
+head(dat1)
 ```
 
 ---
