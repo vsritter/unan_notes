@@ -15,7 +15,7 @@ output:
       countIncrementalSlides: false
 ---
 
-```{css, include=FALSE}
+```{css}
 .tiny .remark-code {
   font-size: 70% !important;
 }
@@ -37,6 +37,7 @@ library(modelr)     # provides easy pipeline modeling functions
 library(broom)      # helps to tidy up model outputs
 ```
 
+---
 class: center, middle, inverse
 # Part I
 # Stratification in R
@@ -76,7 +77,8 @@ EXAMPLE 1: a cross sectional study investigating the relationship between dry ca
 
 ```{r}
 dat <- matrix(c(13,2163,5,3349), nrow = 2, byrow = TRUE)
-rownames(dat) <- c("DF+", "DF-"); colnames(dat) <- c("FUS+", "FUS-")
+rownames(dat) <- c("DF+", "DF-")
+colnames(dat) <- c("FUS+", "FUS-")
 dat
 ```
 
@@ -87,10 +89,12 @@ dat
 library(epiR)
 ```
 
+.tiny[
 ```{r}
 epi.2by2(dat = as.table(dat), method = "cross.sectional",
          conf.level = 0.95, units = 100, outcome = "as.columns")
 ```
+]
 
 ---
 ## Analysis of 2x2 tables
@@ -168,10 +172,12 @@ tab1
 
 Compute the incidence risk ratio and other measures of association:
 
+.tiny[
 ```{r}
 epi.2by2(dat = tab1, method = "cohort.count",
          conf.level = 0.95, units = 100, outcome = "as.columns")
 ```
+]
 
 ---
 ## Analysis of 2x2 tables

@@ -21,9 +21,22 @@ class: center, middle, inverse, title-slide
 
 
 
+```css
+.tiny .remark-code {
+  font-size: 70% !important;
+}
+```
+
+
+&lt;style type="text/css"&gt;
+.tiny .remark-code {
+  font-size: 70% !important;
+}
+&lt;/style&gt;
 
 
 
+---
 class: center, middle, inverse
 # Part I
 # Stratification in R
@@ -64,7 +77,8 @@ EXAMPLE 1: a cross sectional study investigating the relationship between dry ca
 
 ```r
 dat &lt;- matrix(c(13,2163,5,3349), nrow = 2, byrow = TRUE)
-rownames(dat) &lt;- c("DF+", "DF-"); colnames(dat) &lt;- c("FUS+", "FUS-")
+rownames(dat) &lt;- c("DF+", "DF-")
+colnames(dat) &lt;- c("FUS+", "FUS-")
 dat
 ```
 
@@ -79,6 +93,7 @@ dat
 
 
 
+.tiny[
 
 ```r
 epi.2by2(dat = as.table(dat), method = "cross.sectional",
@@ -105,6 +120,7 @@ epi.2by2(dat = as.table(dat), method = "cross.sectional",
 &gt;  CI: confidence interval
 &gt;  * Outcomes per 100 population units
 ```
+]
 
 ---
 ## Analysis of 2x2 tables
@@ -201,6 +217,7 @@ tab1
 
 Compute the incidence risk ratio and other measures of association:
 
+.tiny[
 
 ```r
 epi.2by2(dat = tab1, method = "cohort.count",
@@ -227,6 +244,7 @@ epi.2by2(dat = tab1, method = "cohort.count",
 &gt;  CI: confidence interval
 &gt;  * Outcomes per 100 population units
 ```
+]
 
 ---
 ## Analysis of 2x2 tables
@@ -340,8 +358,8 @@ epi.conf(dat, ctype = "mean.single")
 ```
 
 ```
-&gt;         est         se       lower     upper
-&gt; 1 0.1212894 0.09825655 -0.07367286 0.3162517
+&gt;          est        se      lower      upper
+&gt; 1 -0.1250923 0.1120392 -0.3474024 0.09721773
 ```
 
 EXAMPLE 3:
@@ -365,16 +383,16 @@ dat
 
 ```
 &gt;    group val
-&gt; 1      A  14
-&gt; 2      A   8
+&gt; 1      A   6
+&gt; 2      A  20
 &gt; 3      A   7
-&gt; 4      A  17
-&gt; 5      A  12
-&gt; 6      B   5
-&gt; 7      B   7
-&gt; 8      B   6
-&gt; 9      B   5
-&gt; 10     B   5
+&gt; 4      A  12
+&gt; 5      A   4
+&gt; 6      B   4
+&gt; 7      B   1
+&gt; 8      B   3
+&gt; 9      B   6
+&gt; 10     B   8
 ```
 
 ```r
@@ -382,8 +400,8 @@ epi.conf(dat, ctype = "mean.unpaired")
 ```
 
 ```
-&gt;   est      se    lower    upper
-&gt; 1   6 1.90263 1.612528 10.38747
+&gt;   est       se     lower    upper
+&gt; 1 5.4 3.114482 -1.782009 12.58201
 ```
 
 ---
@@ -466,13 +484,13 @@ t.test(x)
 &gt; 	One Sample t-test
 &gt; 
 &gt; data:  x
-&gt; t = 10.855, df = 99, p-value &lt; 2.2e-16
+&gt; t = 10.514, df = 99, p-value &lt; 2.2e-16
 &gt; alternative hypothesis: true mean is not equal to 0
 &gt; 95 percent confidence interval:
-&gt;  0.9161063 1.3259349
+&gt;  0.7945184 1.1641445
 &gt; sample estimates:
 &gt; mean of x 
-&gt;  1.121021
+&gt; 0.9793315
 ```
 
 ---
@@ -488,13 +506,13 @@ t.test(x, y)
 &gt; 	Welch Two Sample t-test
 &gt; 
 &gt; data:  x and y
-&gt; t = 0.10193, df = 145.26, p-value = 0.919
+&gt; t = 0.0071946, df = 139.84, p-value = 0.9943
 &gt; alternative hypothesis: true difference in means is not equal to 0
 &gt; 95 percent confidence interval:
-&gt;  -0.4342400  0.4814645
+&gt;  -0.4354250  0.4386056
 &gt; sample estimates:
 &gt; mean of x mean of y 
-&gt;  1.121021  1.097408
+&gt; 0.9793315 0.9777412
 ```
 
 ---
@@ -510,13 +528,13 @@ t.test(x, y, var.equal=TRUE)
 &gt; 	Two Sample t-test
 &gt; 
 &gt; data:  x and y
-&gt; t = 0.10193, df = 198, p-value = 0.9189
+&gt; t = 0.0071946, df = 198, p-value = 0.9943
 &gt; alternative hypothesis: true difference in means is not equal to 0
 &gt; 95 percent confidence interval:
-&gt;  -0.4332180  0.4804424
+&gt;  -0.4343075  0.4374881
 &gt; sample estimates:
 &gt; mean of x mean of y 
-&gt;  1.121021  1.097408
+&gt; 0.9793315 0.9777412
 ```
 
 ---
@@ -532,13 +550,13 @@ t.test(x, y, paired = TRUE)
 &gt; 	Paired t-test
 &gt; 
 &gt; data:  x and y
-&gt; t = 0.11124, df = 99, p-value = 0.9117
+&gt; t = 0.0074045, df = 99, p-value = 0.9941
 &gt; alternative hypothesis: true difference in means is not equal to 0
 &gt; 95 percent confidence interval:
-&gt;  -0.3975650  0.4447895
+&gt;  -0.4245696  0.4277502
 &gt; sample estimates:
 &gt; mean of the differences 
-&gt;              0.02361222
+&gt;             0.001590302
 ```
 
 ---
@@ -556,7 +574,7 @@ shapiro.test(x)
 &gt; 	Shapiro-Wilk normality test
 &gt; 
 &gt; data:  x
-&gt; W = 0.99039, p-value = 0.696
+&gt; W = 0.97482, p-value = 0.0522
 ```
 
 ---
@@ -603,7 +621,7 @@ shapiro.test(x)
 &gt; 	Shapiro-Wilk normality test
 &gt; 
 &gt; data:  x
-&gt; W = 0.99039, p-value = 0.696
+&gt; W = 0.97482, p-value = 0.0522
 ```
 
 ---
