@@ -4,6 +4,7 @@
     <title>Biostatistics Module</title>
     <meta charset="utf-8" />
     <meta name="author" content="Victor Ritter" />
+    <meta name="date" content="2020-01-23" />
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
   </head>
   <body>
@@ -14,7 +15,7 @@ class: center, middle, inverse, title-slide
 ## R Lab
 ### Victor Ritter
 ### UNC-CH
-### Jan 2020
+### 01/23/2020
 
 ---
 
@@ -22,7 +23,7 @@ class: center, middle, inverse, title-slide
 
 
 class: center, middle, inverse
-# Part I
+# Part II
 # Linear models
 
 ---
@@ -120,7 +121,7 @@ glance(model1)
 &gt;   r.squared adj.r.squared sigma statistic  p.value    df
 &gt;       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
 &gt; 1     0.637         0.634  3.20      211. 3.41e-28     2
-&gt; # ... with 5 more variables: logLik &lt;dbl&gt;, AIC &lt;dbl&gt;,
+&gt; # … with 5 more variables: logLik &lt;dbl&gt;, AIC &lt;dbl&gt;,
 &gt; #   BIC &lt;dbl&gt;, deviance &lt;dbl&gt;, df.residual &lt;int&gt;
 ```
 
@@ -363,7 +364,7 @@ list(model1 = broom::glance(model1),
 &gt;   r.squared adj.r.squared sigma statistic  p.value    df
 &gt;       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
 &gt; 1     0.637         0.634  3.20      211. 3.41e-28     2
-&gt; # ... with 5 more variables: logLik &lt;dbl&gt;, AIC &lt;dbl&gt;,
+&gt; # … with 5 more variables: logLik &lt;dbl&gt;, AIC &lt;dbl&gt;,
 &gt; #   BIC &lt;dbl&gt;, deviance &lt;dbl&gt;, df.residual &lt;int&gt;
 &gt; 
 &gt; $model2
@@ -371,7 +372,7 @@ list(model1 = broom::glance(model1),
 &gt;   r.squared adj.r.squared sigma statistic  p.value    df
 &gt;       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt; &lt;int&gt;
 &gt; 1     0.919         0.917  1.53      446. 3.49e-64     4
-&gt; # ... with 5 more variables: logLik &lt;dbl&gt;, AIC &lt;dbl&gt;,
+&gt; # … with 5 more variables: logLik &lt;dbl&gt;, AIC &lt;dbl&gt;,
 &gt; #   BIC &lt;dbl&gt;, deviance &lt;dbl&gt;, df.residual &lt;int&gt;
 ```
 

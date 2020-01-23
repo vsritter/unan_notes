@@ -282,12 +282,6 @@ imdb %>%
   ggtitle("My boxplot")
 ```
 
----
-class: center, middle, inverse
-# Part II
-# Confidence intervals and <br/> hypothesis testing
-
-
 
 
 

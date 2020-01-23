@@ -17,8 +17,8 @@ Day 3 - 01/22/2020
 - Exercises \[[html](/ex2.html)\]
 
 Day 4 - 01/23/2020 
-- Stats Notes
-- Lab Notes
+- Stats Notes \[[ppt](/stat4_correlation_SLR.ppt)\]
+- Lab Notes \[[html-1/2](/lec4a.html)\] \[[html-2/2](/lec4.html)\]
 - Exercises
 
 Day 5 - 01/24/2020 
