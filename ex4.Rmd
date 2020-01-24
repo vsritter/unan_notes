@@ -1,0 +1,142 @@
+---
+title: "Laboratory 4 - Linear Models"
+author: Tamy Tsujimoto
+date: "`r format(Sys.time(), '%m/%d/%Y')`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: no
+    toc_depth: 2
+    theme: paper 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, include = F, eval = F)
+```
+
+# Instructions
+
+- You should submit a R code with the template 'Your-Name.R'
+- In your code, before starting a new task, include a block comment with the task number:
+
+```{r}
+#*********************************************************************
+#                       R Code for Task X
+#*********************************************************************
+```
+
+- For this lab you will be using the built-in dataset `marketing` from `datarium` package.
+
+## Task 1
+
+If you have not done so, install the `datarium` package using the `install.package` function.
+
+```{r eval = FALSE}
+install.packages("datarium")
+```
+
+## Task 2
+
+Load the packages `tidyverse`, `ggplot2`, `datarium` and `broom` packages using the `library()` function
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(datarium)
+library(broom)
+```
+
+## Task 3
+
+Access and read the documentation of the `marketing` dataset using `?marketing` and use the `glimpse` function to check the dataset.
+
+```{r}
+
+?diamonds
+glimpse(marketing)
+
+```
+
+## Task 4
+
+Construct scatter plots of sales by each of the advertising medias using `ggplot` package.
+
+Include a loess curve and comment the trend in each one of the three plots.
+
+```{r}
+
+marketing %>% 
+  ggplot(aes(x = youtube, y = sales)) +
+  geom_point() +
+  geom_smooth(method = "loess")
+
+marketing %>% 
+  ggplot(aes(x = facebook, y = sales)) +
+  geom_point() +
+  geom_smooth(method = "loess")
+
+marketing %>% 
+  ggplot(aes(x = newspaper, y = sales)) +
+  geom_point() +
+  geom_smooth(method = "loess")
+
+```
+
+## Task 5
+
+Fit a linear model for sales with main effects for each of the three advertising media.
+
+Print the results of the model using the `summary()` function and interpret the coefficients from the model.
+
+```{r}
+
+fit <- lm(sales ~ facebook + youtube + newspaper, data = marketing)
+summary(fit)
+
+```
+
+## Task 6
+
+Construct the 95% confidence interval for the coefficients from the fitted model in Task 5.
+
+Interpret the results.
+
+```{r}
+
+confint(fit)
+
+```
+
+## Task 7
+
+Assess the model fit and interpret the results.
+
+```{r}
+
+# add model diagnostics to our training data
+model_results <- augment(fit, marketing)
+
+ggplot(model_results, aes(.fitted, .std.resid)) +
+  geom_hline(yintercept = 0) +
+  geom_point() + geom_smooth(se = FALSE) +
+  theme_bw(base_size = 20)
+
+ggplot(model_results, aes(sample = .resid)) + 
+  stat_qq() + stat_qq_line() +
+  theme_bw(base_size = 20)
+
+ggplot(model_results, aes(seq_along(.cooksd), .cooksd)) +
+  geom_bar(stat = "identity", position = "identity") +
+  theme_bw(base_size = 20)
+
+ggplot(model_results, aes(.hat, .std.resid)) +
+  geom_point(aes(size = .cooksd), na.rm = TRUE)+
+  theme_bw(base_size = 20)
+
+```
+
+## Task 8
+
+Summarize the results from this analysis in one paragraph.
+
+

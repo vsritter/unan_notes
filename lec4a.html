@@ -19,6 +19,7 @@ class: center, middle, inverse, title-slide
 
 ---
 
+exclude: true
 
 
 ```css
@@ -358,8 +359,8 @@ epi.conf(dat, ctype = "mean.single")
 ```
 
 ```
-&gt;          est        se      lower      upper
-&gt; 1 -0.1250923 0.1120392 -0.3474024 0.09721773
+&gt;           est         se      lower     upper
+&gt; 1 -0.06134861 0.09915878 -0.2581011 0.1354039
 ```
 
 EXAMPLE 3:
@@ -383,16 +384,16 @@ dat
 
 ```
 &gt;    group val
-&gt; 1      A   6
-&gt; 2      A  20
-&gt; 3      A   7
-&gt; 4      A  12
-&gt; 5      A   4
-&gt; 6      B   4
-&gt; 7      B   1
-&gt; 8      B   3
-&gt; 9      B   6
-&gt; 10     B   8
+&gt; 1      A   3
+&gt; 2      A  22
+&gt; 3      A   8
+&gt; 4      A   9
+&gt; 5      A  18
+&gt; 6      B  11
+&gt; 7      B  -1
+&gt; 8      B  -2
+&gt; 9      B   4
+&gt; 10     B  -8
 ```
 
 ```r
@@ -400,8 +401,8 @@ epi.conf(dat, ctype = "mean.unpaired")
 ```
 
 ```
-&gt;   est       se     lower    upper
-&gt; 1 5.4 3.114482 -1.782009 12.58201
+&gt;    est      se     lower    upper
+&gt; 1 11.2 4.71593 0.3250449 22.07496
 ```
 
 ---
@@ -454,22 +455,6 @@ design = 1, conf.level = 0.95) * 100
 The estimated prevalence of brucellosis in this herd is 2 cases ## per 100 cattle (95% CI 0.54 -- 5.0 cases per 100 cattle).
 
 ---
-## Hypothesis testing - Normality
-
-
-```r
-## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
-## Page 9: Plant Weight Data.
-ctl &lt;- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
-trt &lt;- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
-group &lt;- gl(2, 10, 20, labels = c("Ctl","Trt"))
-weight &lt;- c(ctl, trt)
-model &lt;- lm(weight ~ group)
-
-x = residuals(model)
-```
-
----
 ## Hypothesis testing - t-test
 
 
@@ -484,13 +469,13 @@ t.test(x)
 &gt; 	One Sample t-test
 &gt; 
 &gt; data:  x
-&gt; t = 10.514, df = 99, p-value &lt; 2.2e-16
+&gt; t = 10.566, df = 99, p-value &lt; 2.2e-16
 &gt; alternative hypothesis: true mean is not equal to 0
 &gt; 95 percent confidence interval:
-&gt;  0.7945184 1.1641445
+&gt;  0.7717554 1.1286450
 &gt; sample estimates:
 &gt; mean of x 
-&gt; 0.9793315
+&gt; 0.9502002
 ```
 
 ---
@@ -506,13 +491,13 @@ t.test(x, y)
 &gt; 	Welch Two Sample t-test
 &gt; 
 &gt; data:  x and y
-&gt; t = 0.0071946, df = 139.84, p-value = 0.9943
+&gt; t = 0.95719, df = 147.24, p-value = 0.34
 &gt; alternative hypothesis: true difference in means is not equal to 0
 &gt; 95 percent confidence interval:
-&gt;  -0.4354250  0.4386056
+&gt;  -0.2017018  0.5806285
 &gt; sample estimates:
 &gt; mean of x mean of y 
-&gt; 0.9793315 0.9777412
+&gt; 0.9502002 0.7607369
 ```
 
 ---
@@ -528,13 +513,13 @@ t.test(x, y, var.equal=TRUE)
 &gt; 	Two Sample t-test
 &gt; 
 &gt; data:  x and y
-&gt; t = 0.0071946, df = 198, p-value = 0.9943
+&gt; t = 0.95719, df = 198, p-value = 0.3396
 &gt; alternative hypothesis: true difference in means is not equal to 0
 &gt; 95 percent confidence interval:
-&gt;  -0.4343075  0.4374881
+&gt;  -0.2008726  0.5797993
 &gt; sample estimates:
 &gt; mean of x mean of y 
-&gt; 0.9793315 0.9777412
+&gt; 0.9502002 0.7607369
 ```
 
 ---
@@ -550,31 +535,13 @@ t.test(x, y, paired = TRUE)
 &gt; 	Paired t-test
 &gt; 
 &gt; data:  x and y
-&gt; t = 0.0074045, df = 99, p-value = 0.9941
+&gt; t = 0.94094, df = 99, p-value = 0.349
 &gt; alternative hypothesis: true difference in means is not equal to 0
 &gt; 95 percent confidence interval:
-&gt;  -0.4245696  0.4277502
+&gt;  -0.2100676  0.5889943
 &gt; sample estimates:
 &gt; mean of the differences 
-&gt;             0.001590302
-```
-
----
-## Hypothesis testing - Normality
-
-- Shapiro–Wilk normality test
-
-
-```r
-shapiro.test(x)
-```
-
-```
-&gt; 
-&gt; 	Shapiro-Wilk normality test
-&gt; 
-&gt; data:  x
-&gt; W = 0.97482, p-value = 0.0522
+&gt;               0.1894633
 ```
 
 ---
@@ -609,7 +576,23 @@ prop.test(smokers, patients)
 ---
 ## Hypothesis testing - Normality
 
-- One-sample Kolmogorov-Smirnov test
+
+```r
+## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
+## Page 9: Plant Weight Data.
+ctl &lt;- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt &lt;- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+group &lt;- gl(2, 10, 20, labels = c("Ctl","Trt"))
+weight &lt;- c(ctl, trt)
+model &lt;- lm(weight ~ group)
+
+x = residuals(model)
+```
+
+---
+## Hypothesis testing - Normality
+
+- Shapiro–Wilk normality test
 
 
 ```r
@@ -621,7 +604,26 @@ shapiro.test(x)
 &gt; 	Shapiro-Wilk normality test
 &gt; 
 &gt; data:  x
-&gt; W = 0.97482, p-value = 0.0522
+&gt; W = 0.94744, p-value = 0.3299
+```
+
+---
+## Hypothesis testing - Normality
+
+- One-sample Kolmogorov-Smirnov test
+
+
+```r
+ks.test(x, "pnorm", mean = mean(x), sd   = sd(x))
+```
+
+```
+&gt; 
+&gt; 	One-sample Kolmogorov-Smirnov test
+&gt; 
+&gt; data:  x
+&gt; D = 0.1301, p-value = 0.845
+&gt; alternative hypothesis: two-sided
 ```
 
 ---

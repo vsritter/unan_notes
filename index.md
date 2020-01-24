@@ -19,12 +19,12 @@ Day 3 - 01/22/2020
 Day 4 - 01/23/2020 
 - Stats Notes \[[ppt](/stat4_correlation_SLR.ppt)\]
 - Lab Notes \[[html-1/2](/lec4a.html)\] \[[html-2/2](/lec4.html)\]
-- Exercises
+- Exercises \[[html](/ex4.html)\]
 
 Day 5 - 01/24/2020 
-- Stats Notes
-- Lab Notes
-- Exercises
+- Stats Notes \[[ppt](/stat5_survival_analysis_KM.ppt)\]
+- Lab Notes \[[html](/lec3.html)\]
+- Exercises  \[[html](/ex3.html)\]
 
 Day 6 - 01/27/2020 
 - Stats Notes

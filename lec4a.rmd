@@ -14,6 +14,7 @@ output:
       # highlightLines: true
       countIncrementalSlides: false
 ---
+exclude: true
 
 ```{css}
 .tiny .remark-code {
@@ -284,21 +285,6 @@ design = 1, conf.level = 0.95) * 100
 The estimated prevalence of brucellosis in this herd is 2 cases ## per 100 cattle (95% CI 0.54 -- 5.0 cases per 100 cattle).
 
 ---
-## Hypothesis testing - Normality
-
-```{r}
-## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
-## Page 9: Plant Weight Data.
-ctl <- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
-trt <- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
-group <- gl(2, 10, 20, labels = c("Ctl","Trt"))
-weight <- c(ctl, trt)
-model <- lm(weight ~ group)
-
-x = residuals(model)
-```
-
----
 ## Hypothesis testing - t-test
 
 ```{r}
@@ -329,15 +315,6 @@ t.test(x, y, paired = TRUE)
 ```
 
 ---
-## Hypothesis testing - Normality
-
-- Shapiro–Wilk normality test
-
-```{r}
-shapiro.test(x)
-```
-
----
 ## Hypothesis testing - Proportions
 
 Data from Fleiss (1981), p. 139.
@@ -355,10 +332,34 @@ prop.test(smokers, patients)
 ---
 ## Hypothesis testing - Normality
 
+```{r}
+## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
+## Page 9: Plant Weight Data.
+ctl <- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt <- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+group <- gl(2, 10, 20, labels = c("Ctl","Trt"))
+weight <- c(ctl, trt)
+model <- lm(weight ~ group)
+
+x = residuals(model)
+```
+
+---
+## Hypothesis testing - Normality
+
+- Shapiro–Wilk normality test
+
+```{r}
+shapiro.test(x)
+```
+
+---
+## Hypothesis testing - Normality
+
 - One-sample Kolmogorov-Smirnov test
 
 ```{r}
-ks.test(x)
+ks.test(x, "pnorm", mean = mean(x), sd   = sd(x))
 ```
 
 ---

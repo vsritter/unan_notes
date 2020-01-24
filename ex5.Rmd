@@ -1,0 +1,192 @@
+---
+title: "Laboratory 5 - Introduction to Survival Analysis"
+author: Tamy Tsujimoto and Victor Ritter
+date: "`r format(Sys.time(), '%m/%d/%Y')`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: paper 
+---
+
+# Instructions
+
+- You should submit a R code with the template 'Your-Name.R'
+- In your code, before starting a new task, include a block comment with the task number:
+
+```{r}
+#*********************************************************************
+#                       R Code for Task X
+#*********************************************************************
+```
+
+- For this lab you will be using the built-in dataset `ovarian` from `survival` package.
+
+## Task 1
+
+If you have not done so, install the `survival` and `survminer` packages using the `install.package` function.
+
+```{r eval = FALSE}
+install.packages("survival")
+install.packages("survminer")
+```
+
+## Task 2
+
+Load the packages `tidyverse`, `survival` and `survminer` packages using the `library()` function
+
+```{r}
+library(tidyverse)
+library(survival)
+library(survminer)
+```
+
+## Task 3
+
+Access and read the documentation of the `ovarian` dataset using `?ovarian` and use the `glimpse` and `summary` functions to check the dataset.
+
+```{r}
+
+?ovarian
+glimpse(ovarian)
+summary(ovarian)
+
+```
+
+## Task 4
+
+Construct the Kaplan-Meier curve for the entire sample using the `survfit()` function.
+Plot the curve using `plot()` and `ggsurvplot()` functions to compare.
+
+```{r}
+
+fit <- survfit(Surv(futime, fustat) ~ 1, data = ovarian)
+
+# Using the base R
+plot(fit, xlab = "Days",
+     ylab = "Overall survival probability")
+
+# Using surviminer
+ggsurvplot(fit, data = ovarian, xlab = "Days",
+           ylab = "Overall survival probability")
+
+```
+
+## Task 5
+
+Construct the dataset `ovarian2` containing the categorized variable `age_cat` created from `age` according to the following:
+
+- age_cat: 
+    + 1: <= 60
+    + 2: > 60
+    
+Check the resulting dataset using the `glimpse()` function
+    
+```{r}
+
+ovarian2 <-
+  ovarian %>% 
+  mutate(age_cat = ifelse(age <= 60, 1, 2))
+
+glimpse(ovarian2)
+
+```
+
+## Task 6
+
+Using the `ovarian2` dataset from Task 5, construct the Kaplan-Meier curves with risk tables according to each of the following variables:
+
+- rx:	treatment group 
+- resid.ds:	residual disease present (1=no,2=yes)
+- ecog.ps:	ECOG performance status (1=Fully active, 2=Restricted)
+- age_cat: age in years (1= <= 50, 2= >50)
+
+Comment the KM curves.
+
+```{r}
+
+f1 <- survfit(Surv(futime, fustat) ~ rx, data = ovarian2)
+f2 <- survfit(Surv(futime, fustat) ~ resid.ds, data = ovarian2)
+f3 <- survfit(Surv(futime, fustat) ~ ecog.ps, data = ovarian2)
+f4 <- survfit(Surv(futime, fustat) ~ age_cat, data = ovarian2)
+
+# Using surviminer
+ggsurvplot(f1, data = ovarian2, 
+           risk.table = TRUE, 
+           pval = TRUE,
+           xlab = "Days",
+           ylab = "Overall survival probability")
+
+ggsurvplot(f2, data = ovarian2,            
+           risk.table = TRUE, 
+           pval = TRUE,
+           xlab = "Days",
+           ylab = "Overall survival probability")
+
+ggsurvplot(f3, data = ovarian2, 
+           risk.table = TRUE, 
+           pval = TRUE,
+           xlab = "Days",
+           ylab = "Overall survival probability")
+
+ggsurvplot(f4, data = ovarian2, 
+           risk.table = TRUE, 
+           pval = TRUE,
+           xlab = "Days",
+           ylab = "Overall survival probability")
+
+```
+
+
+## Task 7
+
+Using the `ovarian2` dataset from Task 5, perform the log-rank test for each of the following variables:
+
+- rx:	treatment group 
+- resid.ds:	residual disease present (1=no,2=yes)
+- ecog.ps:	ECOG performance status (1=Fully active, 2=Restricted)
+- age_cat: age in years (1= <= 50, 2= >50)
+
+Interpret the results from the log-rank tests.
+
+```{r}
+
+survdiff(Surv(futime, fustat) ~ rx, data = ovarian2)
+survdiff(Surv(futime, fustat) ~ resid.ds, data = ovarian2)
+survdiff(Surv(futime, fustat) ~ ecog.ps, data = ovarian2)
+survdiff(Surv(futime, fustat) ~ age_cat, data = ovarian2)
+
+```
+
+## Task 8
+
+Fit a Cox proportional hazards model including `rx`, `resid.ds`, `ecog.ps` and `age` as covariates. Obs: Do not forget to include the first three variables as factors.
+
+Print the results using the `summary()` function and interpret the results.
+
+```{r}
+
+fit.cox <- coxph(Surv(futime, fustat) ~ factor(rx) + factor(resid.ds) + factor(ecog.ps) + age, 
+                 data = ovarian)
+
+summary(fit.cox)
+```
+
+## Task 9
+
+Perform the diagnostics to assess if the proportionality assumption from the fitted model from task 8.
+
+Interpret the results.
+
+```{r}
+
+ph <- cox.zph(fit.cox )
+ph
+
+ggcoxzph(ph)
+
+```
+
+## Task 10
+
+Summarize the results from this analysis in one paragraph.

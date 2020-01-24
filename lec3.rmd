@@ -3,7 +3,7 @@ title: "Biostatistics Module"
 subtitle: "R Lab"
 author: "Victor Ritter"
 institute: "UNC-CH"
-date: "Jan 2020"
+date: "01/24/2020"
 output:
   xaringan::moon_reader:
     lib_dir: libs

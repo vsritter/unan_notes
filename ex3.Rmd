@@ -1,0 +1,133 @@
+---
+title: "Laboratory 3 - Visualization with ggplot"
+author: Tamy Tsujimoto
+date: "`r format(Sys.time(), '%m/%d/%Y')`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: no
+    toc_depth: 2
+    theme: paper 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, include = F, eval = F)
+```
+
+# Instructions
+
+- You should submit a R code with the template 'Your-Name.R'
+- In your code, before starting a new task, include a block comment with the task number:
+
+```{r}
+#*********************************************************************
+#                       R Code for Task X
+#*********************************************************************
+```
+
+- For Tasks 1 to 9 you will be using the built-in dataset `diamonds` from `ggplot2`
+
+# Question 1: tidyverse and ggplot
+
+## Task 1
+
+Load the packages `tidyverse` and `ggplot2` using the `library()` function
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+## Task 2
+
+Access and read the documentation of the `diamonds` dataset using `?diamonds` and use the `glimpse` function to check the dataset.
+
+```{r}
+
+?diamonds
+glimpse(diamonds)
+
+```
+
+## Task 3
+
+Create a scatter plot of price in US dollars (`price`) by weight of the diamond (`carat`) using `geom_point`.
+
+```{r}
+
+ggplot(diamonds) +
+  geom_point(aes(x = carat, y = price)) 
+
+```
+
+## Task 4
+
+Repeat the plot from Task 3, coloring the points according to clarity of the diamond (`clarity`).
+
+```{r}
+
+ggplot(diamonds) +
+  geom_point(aes(x = carat, y = price, color = clarity))
+
+```
+
+## Task 5
+
+Construct a histogram of the prices in US dollars using `geom_histogram` using the options `color = "black"` and `fill = "white"`
+
+```{r}
+
+ggplot(diamonds) +
+  geom_histogram(aes(x = price), color = "black", fill = "white")
+
+```
+
+## Task 6
+
+Construct box-plots of price for each diamond color using `geom_boxplot`
+
+```{r}
+
+ggplot(diamonds) +
+  geom_boxplot(aes(x = color, y = price))
+
+```
+
+## Task 7
+
+Construct bar plot for the frequencies of quality of the cut (`cut`) using `geom_bar(stat="identity")`.
+Customize your plot using `color` and `fill` options.
+
+```{r}
+
+diamonds %>% 
+  group_by(cut) %>% 
+  summarise(n=n()) %>% 
+  ggplot() +
+  geom_bar(aes(x = cut, y = n), stat = "identity", color = "red", fill = "pink")
+
+```
+
+## Task 8
+
+Create a new variable `cut_group` by grouping the categories of the variable `cut` as following:
+
+- Fair
+- Good/Very Good
+- Premium/Ideal
+
+and construct a bar plot of `clarity` for each level of `cut_group` using `facet_wrap`
+
+```{r}
+
+diamonds %>% 
+  mutate(cut_group = ifelse(cut %in% c("Good", "Very Good"), "Good/Very Good", 
+                                       ifelse(cut %in% c("Premium", "Ideal"), "Premium/Ideal", "Fair"))) %>%
+  group_by(cut_group, clarity) %>% 
+  summarise(n=n()) %>% 
+  ggplot() +
+  geom_bar(aes(x = clarity, y = n), stat = "identity") +
+  facet_wrap(~ cut_group)
+
+```
+
