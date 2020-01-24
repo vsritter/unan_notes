@@ -11,7 +11,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, include = FALSE)
+knitr::opts_chunk$set(echo = F, include = F, eval = F)
 ```
 
 # Instructions
@@ -165,9 +165,7 @@ Use the `gather()` function to create a dataset `math_long` reshaping the `math`
 math_long <- 
   math %>% 
   mutate(id = row_number()) %>% 
-  gather(key = 'period',
-         value = 'grade',
-         c(G1, G2, G3)) %>% 
+  gather(key = 'period', value = 'grade', G1, G2, G3) %>% 
   arrange(id)
   
 
@@ -199,16 +197,14 @@ glimpse(math_wide)
 For Tasks 12 and 13 you will be using the built in dataset `mtcars`.
 First, run the following code to create the toy datasets to be used in the tasks:
 
-```{r}
+```
 
-mtcars1 <-
-  mtcars %>% 
+mtcars1 <- mtcars %>% 
   mutate(id = rownames(mtcars)) %>%
   filter(cyl %in% c(6,8)) %>% 
   select(id, mpg:drat)
 
-mtcars2 <-
-  mtcars %>% 
+mtcars2 <- mtcars %>% 
   mutate(id = rownames(mtcars)) %>% 
   select(id, wt:carb)
 

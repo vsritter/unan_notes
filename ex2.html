@@ -11,7 +11,7 @@
 
 <meta name="author" content="Tamy Tsujimoto" />
 
-<meta name="date" content="2020-01-22" />
+<meta name="date" content="2020-01-23" />
 
 <title>Laboratory 2 - Introduction to tidyverse</title>
 
@@ -389,7 +389,7 @@ summary {
 
 <h1 class="title toc-ignore">Laboratory 2 - Introduction to tidyverse</h1>
 <h4 class="author">Tamy Tsujimoto</h4>
-<h4 class="date">01/22/2020</h4>
+<h4 class="date">01/23/2020</h4>
 
 </div>
 
@@ -503,6 +503,16 @@ summary {
 <div id="question-3-merging-and-datasets" class="section level1">
 <h1>Question 3: Merging and datasets</h1>
 <p>For Tasks 12 and 13 you will be using the built in dataset <code>mtcars</code>. First, run the following code to create the toy datasets to be used in the tasks:</p>
+<pre><code>
+mtcars1 &lt;- mtcars %&gt;% 
+  mutate(id = rownames(mtcars)) %&gt;%
+  filter(cyl %in% c(6,8)) %&gt;% 
+  select(id, mpg:drat)
+
+mtcars2 &lt;- mtcars %&gt;% 
+  mutate(id = rownames(mtcars)) %&gt;% 
+  select(id, wt:carb)
+</code></pre>
 <div id="task-12" class="section level2">
 <h2>Task 12</h2>
 <p>Create a dataset called <code>mtcars_t10</code> by merging <code>mtcars1</code> and <code>mtcars2</code> using full join:</p>

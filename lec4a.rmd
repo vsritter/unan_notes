@@ -358,7 +358,7 @@ prop.test(smokers, patients)
 - One-sample Kolmogorov-Smirnov test
 
 ```{r}
-shapiro.test(x)
+ks.test(x)
 ```
 
 ---
