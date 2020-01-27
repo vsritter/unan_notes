@@ -28,8 +28,8 @@ Day 5 - 01/24/2020
 
 Day 6 - 01/27/2020 
 - Stats Notes
-- Lab Notes
-- Exercises
+- Lab Notes \[[html](/lec5.html)\]
+- Exercises \[[html](/ex5.html)\]
 
 Day 7 - 01/28/2020 
 - Stats Notes

@@ -2,9 +2,7 @@
 title: "Introduction to R Markdown"
 output:
   word_document: default
-  html_notebook: default
   html_document: default
-  pdf_document: default
 ---
 
 You will be submitting your homework in the form of an R Markdown file (.Rmd) and a knitted HTML file (.html). This tutorial will help you navigate the R Markdown platform. 

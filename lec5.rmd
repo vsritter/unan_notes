@@ -3,7 +3,7 @@ title: "Biostatistics Module"
 subtitle: "R Lab"
 author: "Victor Ritter"
 institute: "UNC-CH"
-date: "Jan 2020"
+date: "01/27/2020"
 output:
   xaringan::moon_reader:
     lib_dir: libs
@@ -256,6 +256,13 @@ summary(f3)
 ---
 ## Proportional Hazards regression
 
+```{r, echo=T, message=F, warning=F, fig.width=7, fig.height=6, fig.align='center'}
+ggforest(f3, cpositions = c(0.02, 0.1, 0.35), fontsize = 1.5)
+```
+
+---
+## Proportional Hazards regression
+
 - Advanced options
 
   - `coxph(Surv(time, status) ~ strata(sex) + age`
@@ -294,7 +301,7 @@ plot(ph)
 ## Diagnostics - PH assumption
 
 ```{r, echo=T, message=F, warning=F, fig.width=7, fig.height=6, fig.align='center'}
-ggcoxzph(ph)
+ggcoxzph(ph, se = F)
 ```
 
 ---
@@ -303,6 +310,14 @@ ggcoxzph(ph)
 - Schoenfeld residual for checking the proportional hazards assumption for a covariate
 
 - Martingale residual used to examine overall test of the goodness-of-fit and functional for of the covariate
+
+- Normalized martingale residuals:
+
+  - Positive values correspond to individuals that “died too soon” compared to expected survival times
+  
+  - Negative values correspond to individual that “lived too long”
+  
+  - Very large or small values are outliers, which are poorly predicted by the model.
 
 - Deviance residual for detection of poorly predicted observations
 
@@ -324,13 +339,6 @@ ggcoxdiagnostics(f3, type = "deviance",
                  ggtheme = theme_bw(), point.size = 1.5)
 ```
 
-???
-normalized martingale residual
-
-- Positive values correspond to individuals that “died too soon” compared to expected survival times.
-- Negative values correspond to individual that “lived too long”.
-- Very large or small values are outliers, which are poorly predicted by the model.
-
 ---
 ## Diagnostics - Residuals
 
@@ -338,8 +346,16 @@ normalized martingale residual
 ggcoxdiagnostics(f3, type = "dfbetas", ggtheme = theme_bw())
 ```
 
-???
-type = “dfbeta”, plots the estimated changes in the regression coefficients upon deleting each observation in turn; likewise, type=“dfbetas” produces the estimated changes in the coefficients divided by their standard errors.
+---
+## Diagnostics - Residuals
+
+- type = “dfbeta”
+
+  - plots the estimated changes in the regression coefficients upon deleting each observation in turn
+
+- type=“dfbetas”
+
+  - produces the estimated changes in the coefficients divided by their standard errors.
 
 ---
 ## Diagnostics - Residuals
@@ -349,6 +365,8 @@ ggcoxfunctional(Surv(time, status) ~ age + log(age) + sqrt(age),
                 data = lung, ggtheme = theme_bw())
 ```
 
-???
+---
+## Diagnostics - Residuals
+
 Plotting the Martingale residuals against continuous covariates is a common approach used to detect nonlinearity or, in other words, to assess the functional form of a covariate. 
 

@@ -4,6 +4,7 @@
     <title>Biostatistics Module</title>
     <meta charset="utf-8" />
     <meta name="author" content="Victor Ritter" />
+    <meta name="date" content="2020-01-27" />
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
   </head>
   <body>
@@ -14,7 +15,7 @@ class: center, middle, inverse, title-slide
 ## R Lab
 ### Victor Ritter
 ### UNC-CH
-### Jan 2020
+### 01/27/2020
 
 ---
 
@@ -424,6 +425,16 @@ summary(f3)
 ---
 ## Proportional Hazards regression
 
+
+```r
+ggforest(f3, cpositions = c(0.02, 0.1, 0.35), fontsize = 1.5)
+```
+
+&lt;img src="lec5_files/figure-html/unnamed-chunk-14-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## Proportional Hazards regression
+
 - Advanced options
 
   - `coxph(Surv(time, status) ~ strata(sex) + age`
@@ -467,17 +478,17 @@ ph
 plot(ph)
 ```
 
-&lt;img src="lec5_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;&lt;img src="lec5_files/figure-html/unnamed-chunk-15-2.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec5_files/figure-html/unnamed-chunk-16-1.png" style="display: block; margin: auto;" /&gt;&lt;img src="lec5_files/figure-html/unnamed-chunk-16-2.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Diagnostics - PH assumption
 
 
 ```r
-ggcoxzph(ph)
+ggcoxzph(ph, se = F)
 ```
 
-&lt;img src="lec5_files/figure-html/unnamed-chunk-16-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec5_files/figure-html/unnamed-chunk-17-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Diagnostics - Residuals
@@ -485,6 +496,14 @@ ggcoxzph(ph)
 - Schoenfeld residual for checking the proportional hazards assumption for a covariate
 
 - Martingale residual used to examine overall test of the goodness-of-fit and functional for of the covariate
+
+- Normalized martingale residuals:
+
+  - Positive values correspond to individuals that “died too soon” compared to expected survival times
+  
+  - Negative values correspond to individual that “lived too long”
+  
+  - Very large or small values are outliers, which are poorly predicted by the model.
 
 - Deviance residual for detection of poorly predicted observations
 
@@ -499,7 +518,7 @@ ggcoxdiagnostics(f3, type = "score",
                  ggtheme = theme_bw(), point.size = 1.5)
 ```
 
-&lt;img src="lec5_files/figure-html/unnamed-chunk-17-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec5_files/figure-html/unnamed-chunk-18-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Diagnostics - Residuals
@@ -510,14 +529,7 @@ ggcoxdiagnostics(f3, type = "deviance",
                  ggtheme = theme_bw(), point.size = 1.5)
 ```
 
-&lt;img src="lec5_files/figure-html/unnamed-chunk-18-1.png" style="display: block; margin: auto;" /&gt;
-
-???
-normalized martingale residual
-
-- Positive values correspond to individuals that “died too soon” compared to expected survival times.
-- Negative values correspond to individual that “lived too long”.
-- Very large or small values are outliers, which are poorly predicted by the model.
+&lt;img src="lec5_files/figure-html/unnamed-chunk-19-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Diagnostics - Residuals
@@ -527,10 +539,18 @@ normalized martingale residual
 ggcoxdiagnostics(f3, type = "dfbetas", ggtheme = theme_bw())
 ```
 
-&lt;img src="lec5_files/figure-html/unnamed-chunk-19-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec5_files/figure-html/unnamed-chunk-20-1.png" style="display: block; margin: auto;" /&gt;
 
-???
-type = “dfbeta”, plots the estimated changes in the regression coefficients upon deleting each observation in turn; likewise, type=“dfbetas” produces the estimated changes in the coefficients divided by their standard errors.
+---
+## Diagnostics - Residuals
+
+- type = “dfbeta”
+
+  - plots the estimated changes in the regression coefficients upon deleting each observation in turn
+
+- type=“dfbetas”
+
+  - produces the estimated changes in the coefficients divided by their standard errors.
 
 ---
 ## Diagnostics - Residuals
@@ -541,9 +561,11 @@ ggcoxfunctional(Surv(time, status) ~ age + log(age) + sqrt(age),
                 data = lung, ggtheme = theme_bw())
 ```
 
-&lt;img src="lec5_files/figure-html/unnamed-chunk-20-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec5_files/figure-html/unnamed-chunk-21-1.png" style="display: block; margin: auto;" /&gt;
 
-???
+---
+## Diagnostics - Residuals
+
 Plotting the Martingale residuals against continuous covariates is a common approach used to detect nonlinearity or, in other words, to assess the functional form of a covariate.
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>

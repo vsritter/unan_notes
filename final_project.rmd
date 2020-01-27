@@ -1,0 +1,27 @@
+---
+title: "Statistical Analysis Report"
+subtitle: "General Guidelines"
+author: "Victor Ritter"
+date: "1/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The final report should have:
+
+- **Introduction:** here you should include a brief contextual background about the study as well as study design and general study objectives. The language in this section should not be heavily dependent on statistical terms such that a non-specialized audience should be able to understand.
+
+- **Primary and Secondary Aims:** state the study's specific aims as clear as possible. Language here should be technical and recall any measurements by their technical term. Ideally, studies should be designed to answer one or two specific aims and any reminder question to be explored will be labelled as secondary aim. These are the researcher's study questions for which we should formulate hypothesis to be tested. 
+
+- **Statistical Analysis (Methods):** start by describing the techniques used on your descriptive analysis (mean, standard deviation, median, range, etc.). Use specific language listing variables by name. Proceed describing which statistical methods you plan on using to answer the study questions (aims). Make sure to state the hypothesis to be tested and the inferential procedure to be used. Avoid vague sentences like _mean and standard deviations were computed for continuous variables_ (which continuous variables?) or _chi-squared testes were performed for categorical variables_ (which variables? what hypothesis is being tested? independence, homogeneity, symmetry, etc.). You should not include any type of results in the methods section. You can refer to tables and figures from the appendix that contain results.
+
+- **Results:** start by characterizing the cohort based on the results of you descriptive analysis. State and interpret the relevant results to the study questions. For instance, if you performed a multiple regression analysis, not all variables need to be interpreted (although a table with all regression coefficients - or odds ratio/rate ratio for logistic/log-linear regression - should be included on the Appendix). You should not include any method description here, just results from previously described procedures.
+
+- **Conclusion:** finish by restating the study questions and reviewing the main results. As the data analysis, your conclusions should be restricted to the statistical methods performed (i.e. acceptance/rejection of hypothesis, interpretations of estimated measures, etc.). If you happen to also be one of the study's investigator, you might want to add a _discussion_ section. If you do not plan to have a _discussion_ section, make sure to include here any limitation you found on the study.
+
+- **Discussion** (if applicable): if you are performing the analysis of your our research you might want to elaborate more about the impact of your analysis on your research area. Include a generalizability discussion making sure to state limitations on the study, e.g. design, data acquisition, analysis limitations.
+
+- **Appendix (A/B):** here you should include supporting tables (Appendix A) and plots (Appendix B). Make sure to include meaningful labels.

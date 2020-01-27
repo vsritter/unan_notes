@@ -5,9 +5,14 @@ date: "`r format(Sys.time(), '%m/%d/%Y')`"
 output: 
   html_document:
     toc: yes
-    toc_float: yes
+    toc_float: no
+    toc_depth: 2
     theme: paper 
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, include = F, eval = F)
+```
 
 # Instructions
 
