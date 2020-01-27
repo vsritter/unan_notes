@@ -1,6 +1,9 @@
 
 ## Biostatistics Module Notes
 
+Final project due 01/31
+- Guidelines \[[html](/final_project.html)\]
+
 Day 1 - 01/20/2020 
 - Stats Notes \[[ppt-1/2](/stat1a_descriptive_statistics.ppt)\] \[[ppt-2/2](/stat1b_categorical_data.ppt)\]
 - Lab Notes \[[html](/lec1.html)\]
