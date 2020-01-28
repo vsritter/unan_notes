@@ -695,7 +695,6 @@ anova(mod, mod3)
 ---
 ## ANOVA in R - post-hoc tests
 
-
 - Package **`multcomp`**: library of functions for testing linear hypothesis
 
 .center[![:scale 43%](./images/mc.jpg)]
@@ -703,7 +702,12 @@ anova(mod, mod3)
 ---
 ## ANOVA in R - post-hoc tests
 
---
+- Power and size of CI
+
+.center[![:scale 80%](./images/posthoc.png)]
+
+---
+## ANOVA in R - post-hoc tests
 
 - Multiple comparisons via Tukey's HSD (Honest Significant Differences)
 
@@ -842,7 +846,7 @@ summary(lht, test = adjusted(type = "none"))
 ```
 
 ---
-## ANOVA in R -  post-hoc CIs
+## ANOVA in R - post-hoc CIs
 
 
 ```r
@@ -869,7 +873,7 @@ confint(test)
 ```
 
 ---
-## ANOVA in R -  post-hoc CIs
+## ANOVA in R - post-hoc CIs
 
 
 ```r
@@ -894,7 +898,7 @@ ci
 ```
 
 ---
-## ANOVA in R -  post-hoc CIs
+## ANOVA in R - post-hoc CIs
 
 
 ```r
@@ -902,6 +906,53 @@ plot(test)
 ```
 
 &lt;img src="lec6_files/figure-html/unnamed-chunk-32-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+## ANOVA in R - FDR
+
+- **p.ajust()** function in (base) R
+
+- Methods include
+
+  - Bonferroni correction ("bonferroni") in which the p-values are multiplied by the number of comparisons
+  - Holm (1979) ("holm")
+  - Hochberg (1988) ("hochberg")
+  - Hommel (1988) ("hommel")
+  - Benjamini &amp; Hochberg (1995) ("BH" or its alias "fdr")
+  - Benjamini &amp; Yekutieli (2001) ("BY")
+  - pass-through option ("none") is also included
+
+---
+## ANOVA in R - FDR
+
+
+```r
+set.seed(123)
+x &lt;- rnorm(50, mean = c(rep(0, 25), rep(3, 25)))
+p &lt;- 2*pnorm(sort(-abs(x)))
+
+round(p, 3)
+```
+
+```
+&gt;  [1] 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.001 0.002
+&gt; [13] 0.003 0.004 0.005 0.007 0.007 0.009 0.009 0.011 0.021 0.049 0.061 0.063
+&gt; [25] 0.074 0.083 0.086 0.119 0.189 0.206 0.221 0.286 0.305 0.466 0.483 0.492
+&gt; [37] 0.532 0.575 0.578 0.619 0.636 0.645 0.656 0.689 0.719 0.818 0.827 0.897
+&gt; [49] 0.912 0.944
+```
+
+```r
+round(p.adjust(p, "BH"), 3)
+```
+
+```
+&gt;  [1] 0.000 0.000 0.000 0.001 0.001 0.001 0.001 0.001 0.001 0.002 0.003 0.007
+&gt; [13] 0.013 0.013 0.017 0.021 0.021 0.024 0.025 0.028 0.050 0.112 0.130 0.130
+&gt; [25] 0.148 0.159 0.160 0.213 0.326 0.343 0.356 0.446 0.462 0.684 0.684 0.684
+&gt; [37] 0.719 0.741 0.741 0.763 0.763 0.763 0.763 0.782 0.799 0.880 0.880 0.930
+&gt; [49] 0.930 0.944
+```
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

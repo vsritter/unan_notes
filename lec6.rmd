@@ -363,7 +363,6 @@ anova(mod, mod3)
 ---
 ## ANOVA in R - post-hoc tests
 
-
 - Package **`multcomp`**: library of functions for testing linear hypothesis
 
 .center[![:scale 43%](./images/mc.jpg)]
@@ -371,7 +370,12 @@ anova(mod, mod3)
 ---
 ## ANOVA in R - post-hoc tests
 
---
+- Power and size of CI
+
+.center[![:scale 80%](./images/posthoc.png)]
+
+---
+## ANOVA in R - post-hoc tests
 
 - Multiple comparisons via Tukey's HSD (Honest Significant Differences)
 
@@ -423,14 +427,14 @@ summary(lht, test = adjusted(type = "none"))
 ```
 
 ---
-## ANOVA in R -  post-hoc CIs
+## ANOVA in R - post-hoc CIs
 
 ```{r}
 confint(test)
 ```
 
 ---
-## ANOVA in R -  post-hoc CIs
+## ANOVA in R - post-hoc CIs
 
 ```{r}
 ci <- confint(lht, calpha = 0.05/2)
@@ -438,13 +442,38 @@ ci
 ```
 
 ---
-## ANOVA in R -  post-hoc CIs
+## ANOVA in R - post-hoc CIs
 
 ```{r, echo=T, message=F, warning=F, fig.width=7, fig.height=6, fig.align='center'}
 plot(test)
 ```
 
+---
+## ANOVA in R - FDR
 
+- **p.ajust()** function in (base) R
+
+- Methods include
+
+  - Bonferroni correction ("bonferroni") in which the p-values are multiplied by the number of comparisons
+  - Holm (1979) ("holm")
+  - Hochberg (1988) ("hochberg")
+  - Hommel (1988) ("hommel")
+  - Benjamini & Hochberg (1995) ("BH" or its alias "fdr")
+  - Benjamini & Yekutieli (2001) ("BY")
+  - pass-through option ("none") is also included
+
+---
+## ANOVA in R - FDR
+
+```{r}
+set.seed(123)
+x <- rnorm(50, mean = c(rep(0, 25), rep(3, 25)))
+p <- 2*pnorm(sort(-abs(x)))
+
+round(p, 3)
+round(p.adjust(p, "BH"), 3)
+```
 
 
 
