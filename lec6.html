@@ -4,6 +4,7 @@
     <title>Biostatistics Module</title>
     <meta charset="utf-8" />
     <meta name="author" content="Victor Ritter" />
+    <meta name="date" content="2020-01-28" />
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
   </head>
   <body>
@@ -14,7 +15,7 @@ class: center, middle, inverse, title-slide
 ## R Lab
 ### Victor Ritter
 ### UNC-CH
-### Jan 2020
+### 01/28/2020
 
 ---
 
@@ -71,7 +72,7 @@ dt %&gt;% print(n = 9)
 &gt; 7 B     D    
 &gt; 8 B     D    
 &gt; 9 B     D    
-&gt; # ... with 3 more rows
+&gt; # … with 3 more rows
 ```
 ]
 
@@ -207,7 +208,7 @@ dt %&gt;%
 &gt;  8 B     D    
 &gt;  9 B     D    
 &gt; 10 B     E    
-&gt; # ... with 2 more rows
+&gt; # … with 2 more rows
 ```
 
 ---
@@ -331,11 +332,19 @@ class: center, middle, inverse
 
 - They all have pros and cons regarding interpretation and power
 
-???
-There is NO consensus on which type of SS should be used for unbalanced designs, but most statisticians generally recommend type III, which is the default in most software packages such as SAS, SPSS, JMP, Minitab, Stata, Statista, Systat, and Unistat while R, S-Plus, Genstat, and Mathematica use type I. However, Langsrud (2003) argues that Type II is preferable considering the power of types II and III.
+---
+## SS relationships
+
+- There is NO consensus on which type of SS should be used for unbalanced designs, but most statisticians generally recommend type III
+
+  - default in most software packages such as SAS, SPSS, JMP, Minitab, Stata, Statista, Systat, and Unistat
+  
+  - while R, S-Plus, Genstat, and Mathematica use type I.
+  
+  - Langsrud (2003) argues that Type II is preferable considering the power of types II and III
 
 ---
-## ANOVA in R - Data
+## ANOVA in R - data
 
 
 ```r
@@ -346,9 +355,9 @@ glimpse(ToothGrowth)
 ```
 &gt; Observations: 60
 &gt; Variables: 3
-&gt; $ len  &lt;dbl&gt; 4.2, 11.5, 7.3, 5.8, 6.4, 10.0, 11.2, 11.2...
-&gt; $ supp &lt;fct&gt; VC, VC, VC, VC, VC, VC, VC, VC, VC, VC, VC...
-&gt; $ dose &lt;dbl&gt; 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0....
+&gt; $ len  &lt;dbl&gt; 4.2, 11.5, 7.3, 5.8, 6.4, 10.0, 11.2, 11.2, …
+&gt; $ supp &lt;fct&gt; VC, VC, VC, VC, VC, VC, VC, VC, VC, VC, VC, …
+&gt; $ dose &lt;dbl&gt; 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,…
 ```
 
 A data frame with 60 observations on 3 variables.
@@ -414,7 +423,7 @@ ToothGrowth %&gt;%
 ```r
 ToothGrowth %&gt;% 
   ggplot() +
-  geom_boxplot(aes(x = dose, y = len))
+  geom_boxplot(aes(x = factor(dose), y = len))
 ```
 
 &lt;img src="lec6_files/figure-html/unnamed-chunk-14-1.png" style="display: block; margin: auto;" /&gt;
@@ -426,7 +435,7 @@ ToothGrowth %&gt;%
 ```r
 ToothGrowth %&gt;% 
   ggplot() +
-  geom_boxplot(aes(x = dose, y = len, fill = supp))
+  geom_boxplot(aes(x = factor(dose), y = len, fill = supp))
 ```
 
 &lt;img src="lec6_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
@@ -500,6 +509,15 @@ anova(mod)
 
 ```r
 car::Anova(mod, type = 3)
+```
+
+```
+&gt; Registered S3 methods overwritten by 'car':
+&gt;   method                          from
+&gt;   influence.merMod                lme4
+&gt;   cooks.distance.influence.merMod lme4
+&gt;   dfbeta.influence.merMod         lme4
+&gt;   dfbetas.influence.merMod        lme4
 ```
 
 ```
@@ -752,7 +770,7 @@ summary(test)
 
 ```r
 lht &lt;- glht(mod, linfct = c("dose2 - dose1 = 0",
-                             "suppVC = 0"))
+                            "suppVC = 0"))
 summary(lht, test = adjusted(type = "bonferroni"))
 ```
 
@@ -769,6 +787,31 @@ summary(lht, test = adjusted(type = "bonferroni"))
 &gt; ---
 &gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 &gt; (Adjusted p values reported -- bonferroni method)
+```
+
+---
+## ANOVA in R - post-hoc tests
+
+- General linear hypothesis 
+
+
+```r
+summary(lht, test = adjusted(type = "Shaffer"))
+```
+
+```
+&gt; 
+&gt; 	 Simultaneous Tests for General Linear Hypotheses
+&gt; 
+&gt; Fit: lm(formula = len ~ supp + dose, data = ToothGrowth)
+&gt; 
+&gt; Linear Hypotheses:
+&gt;                    Estimate Std. Error t value Pr(&gt;|t|)    
+&gt; dose2 - dose1 == 0   6.3650     1.2104   5.259 4.71e-06 ***
+&gt; suppVC == 0         -3.7000     0.9883  -3.744 0.000429 ***
+&gt; ---
+&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+&gt; (Adjusted p values reported -- Shaffer method)
 ```
 
 ---
@@ -858,7 +901,7 @@ ci
 plot(test)
 ```
 
-&lt;img src="lec6_files/figure-html/unnamed-chunk-31-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec6_files/figure-html/unnamed-chunk-32-1.png" style="display: block; margin: auto;" /&gt;
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

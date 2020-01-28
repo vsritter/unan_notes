@@ -3,7 +3,7 @@ title: "Biostatistics Module"
 subtitle: "R Lab"
 author: "Victor Ritter"
 institute: "UNC-CH"
-date: "Jan 2020"
+date: "01/28/2020"
 output:
   xaringan::moon_reader:
     lib_dir: libs
@@ -203,11 +203,19 @@ class: center, middle, inverse
 
 - They all have pros and cons regarding interpretation and power
 
-???
-There is NO consensus on which type of SS should be used for unbalanced designs, but most statisticians generally recommend type III, which is the default in most software packages such as SAS, SPSS, JMP, Minitab, Stata, Statista, Systat, and Unistat while R, S-Plus, Genstat, and Mathematica use type I. However, Langsrud (2003) argues that Type II is preferable considering the power of types II and III.
+---
+## SS relationships
+
+- There is NO consensus on which type of SS should be used for unbalanced designs, but most statisticians generally recommend type III
+
+  - default in most software packages such as SAS, SPSS, JMP, Minitab, Stata, Statista, Systat, and Unistat
+  
+  - while R, S-Plus, Genstat, and Mathematica use type I.
+  
+  - Langsrud (2003) argues that Type II is preferable considering the power of types II and III
 
 ---
-## ANOVA in R - Data
+## ANOVA in R - data
 
 ```{r}
 library(datasets)
@@ -251,7 +259,7 @@ ToothGrowth %>%
 ```{r, echo=T, message=F, warning=F, fig.width=7, fig.height=5, fig.align='center'}
 ToothGrowth %>% 
   ggplot() +
-  geom_boxplot(aes(x = dose, y = len))
+  geom_boxplot(aes(x = factor(dose), y = len))
 ```
 
 ---
@@ -260,7 +268,7 @@ ToothGrowth %>%
 ```{r, echo=T, message=F, warning=F, fig.width=7, fig.height=5, fig.align='center'}
 ToothGrowth %>% 
   ggplot() +
-  geom_boxplot(aes(x = dose, y = len, fill = supp))
+  geom_boxplot(aes(x = factor(dose), y = len, fill = supp))
 ```
 
 ---
@@ -390,8 +398,17 @@ summary(test)
 
 ```{r}
 lht <- glht(mod, linfct = c("dose2 - dose1 = 0",
-                             "suppVC = 0"))
+                            "suppVC = 0"))
 summary(lht, test = adjusted(type = "bonferroni"))
+```
+
+---
+## ANOVA in R - post-hoc tests
+
+- General linear hypothesis 
+
+```{r}
+summary(lht, test = adjusted(type = "Shaffer"))
 ```
 
 ---

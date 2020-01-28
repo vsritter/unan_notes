@@ -36,7 +36,7 @@ Day 6 - 01/27/2020
 
 Day 7 - 01/28/2020 
 - Stats Notes
-- Lab Notes
+- Lab Notes \[[html](/lec6.html)\]
 - Exercises
 
 Day 8 - 01/29/2020 
