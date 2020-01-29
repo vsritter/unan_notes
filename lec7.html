@@ -4,6 +4,7 @@
     <title>Biostatistics Module</title>
     <meta charset="utf-8" />
     <meta name="author" content="Victor Ritter" />
+    <meta name="date" content="2020-01-29" />
     <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
   </head>
   <body>
@@ -14,12 +15,27 @@ class: center, middle, inverse, title-slide
 ## R Lab
 ### Victor Ritter
 ### UNC-CH
-### Jan 2020
+### 01/29/2020
 
 ---
 
 
 
+```css
+.tiny .remark-code {
+  font-size: 70% !important;
+}
+```
+
+
+&lt;style type="text/css"&gt;
+.tiny .remark-code {
+  font-size: 70% !important;
+}
+&lt;/style&gt;
+
+
+---
 
 class: center, middle, inverse
 # Part I
@@ -86,7 +102,7 @@ ggplot(LOWBWT, aes(x = AGE, fill = LOW)) +
   geom_density(alpha=.5)
 ```
 
-&lt;img src="lec7_files/figure-html/unnamed-chunk-2-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec7_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Data - descriptive analysis
@@ -97,7 +113,7 @@ ggplot(LOWBWT, aes(x = LWT, fill = LOW)) +
   geom_density(alpha=.5)
 ```
 
-&lt;img src="lec7_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec7_files/figure-html/unnamed-chunk-4-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Model - fit
@@ -126,6 +142,7 @@ fit
 ---
 ## Model - fit
 
+.tiny[
 
 ```r
 summary(fit)
@@ -159,6 +176,43 @@ summary(fit)
 &gt; 
 &gt; Number of Fisher Scoring iterations: 4
 ```
+]
+
+---
+## Model - fit
+
+.tiny[
+
+```r
+cbind(coef(fit), confint(fit)) %&gt;% exp() 
+```
+
+```
+&gt; Waiting for profiling to be done...
+```
+
+```
+&gt;                           2.5 %    97.5 %
+&gt; (Intercept) 3.6941158 0.4752664 32.099365
+&gt; AGE         0.9747992 0.9117071  1.039359
+&gt; LWT         0.9857493 0.9724784  0.997786
+&gt; RACE2       2.7286908 1.0226789  7.322799
+&gt; RACE3       1.5580902 0.7679486  3.167985
+```
+
+```r
+pubh::glm_coef(fit)
+```
+
+```
+&gt;                     Odds ratio Pr(&gt;|z|)
+&gt; (Intercept) 3.69 (0.19, 73.16)    0.391
+&gt; AGE          0.97 (0.91, 1.04)    0.466
+&gt; LWT             0.99 (0.97, 1)    0.019
+&gt; RACE2        2.73 (1.08, 6.88)    0.033
+&gt; RACE3        1.56 (0.81, 3.01)    0.187
+```
+]
 
 ---
 ## Model - analysis of deviance table
@@ -196,6 +250,15 @@ car::Anova(fit)
 ```
 
 ```
+&gt; Registered S3 methods overwritten by 'car':
+&gt;   method                          from
+&gt;   influence.merMod                lme4
+&gt;   cooks.distance.influence.merMod lme4
+&gt;   dfbeta.influence.merMod         lme4
+&gt;   dfbetas.influence.merMod        lme4
+```
+
+```
 &gt; Analysis of Deviance Table (Type II tests)
 &gt; 
 &gt; Response: LOW
@@ -212,14 +275,15 @@ car::Anova(fit)
 
 
 ```r
-fit1 &lt;- update(fit, . ~ AGE + LWT * RACE)
+fit1 &lt;- glm(LOW ~ AGE + LWT * RACE,
+          family = binomial(link = "logit"), data = LOWBWT)
 anova(fit1, fit, test = "LR")
 ```
 
 ```
 &gt; Analysis of Deviance Table
 &gt; 
-&gt; Model 1: LOW ~ AGE + LWT + RACE + LWT:RACE
+&gt; Model 1: LOW ~ AGE + LWT * RACE
 &gt; Model 2: LOW ~ AGE + LWT + RACE
 &gt;   Resid. Df Resid. Dev Df Deviance Pr(&gt;Chi)
 &gt; 1       182     221.37                     
@@ -290,15 +354,18 @@ hoslem.test(fit$y, fitted(fit), g = 10)
 ---
 ## Model - overdispersion
 
+.tiny[
 
 ```r
-summary(update(fit, . ~ ., family = quasibinomial))
+fit2 &lt;- glm(LOW ~ AGE + LWT + RACE,
+            family = binomial(link = "logit"), data = LOWBWT)
+summary(fit2)
 ```
 
 ```
 &gt; 
 &gt; Call:
-&gt; glm(formula = LOW ~ AGE + LWT + RACE, family = quasibinomial, 
+&gt; glm(formula = LOW ~ AGE + LWT + RACE, family = binomial(link = "logit"), 
 &gt;     data = LOWBWT)
 &gt; 
 &gt; Deviance Residuals: 
@@ -306,23 +373,24 @@ summary(update(fit, . ~ ., family = quasibinomial))
 &gt; -1.4052  -0.8946  -0.7209   1.2484   2.0982  
 &gt; 
 &gt; Coefficients:
-&gt;              Estimate Std. Error t value Pr(&gt;|t|)  
-&gt; (Intercept)  1.306741   1.080250   1.210   0.2280  
-&gt; AGE         -0.025524   0.033577  -0.760   0.4481  
-&gt; LWT         -0.014353   0.006587  -2.179   0.0306 *
-&gt; RACE2        1.003822   0.502886   1.996   0.0474 *
-&gt; RACE3        0.443461   0.363781   1.219   0.2244  
+&gt;              Estimate Std. Error z value Pr(&gt;|z|)  
+&gt; (Intercept)  1.306741   1.069786   1.221   0.2219  
+&gt; AGE         -0.025524   0.033252  -0.768   0.4427  
+&gt; LWT         -0.014353   0.006523  -2.200   0.0278 *
+&gt; RACE2        1.003822   0.498014   2.016   0.0438 *
+&gt; RACE3        0.443461   0.360257   1.231   0.2183  
 &gt; ---
 &gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 &gt; 
-&gt; (Dispersion parameter for quasibinomial family taken to be 1.019658)
+&gt; (Dispersion parameter for binomial family taken to be 1)
 &gt; 
 &gt;     Null deviance: 234.67  on 188  degrees of freedom
 &gt; Residual deviance: 222.66  on 184  degrees of freedom
-&gt; AIC: NA
+&gt; AIC: 232.66
 &gt; 
 &gt; Number of Fisher Scoring iterations: 4
 ```
+]
 
 ---
 ## Model - residuals
@@ -344,9 +412,8 @@ fit_resid
 &gt; 3 1        34   187 2      -1.24    0.627   1.73 0.0684
 &gt; 4 1        25   105 3      -0.395   0.289   1.35 0.0201
 &gt; 5 1        25    85 3      -0.108   0.354   1.22 0.0312
-&gt; # ... with 184 more rows, and 4 more variables:
-&gt; #   .sigma &lt;dbl&gt;, .cooksd &lt;dbl&gt;, .std.resid &lt;dbl&gt;,
-&gt; #   index &lt;int&gt;
+&gt; # … with 184 more rows, and 4 more variables: .sigma &lt;dbl&gt;,
+&gt; #   .cooksd &lt;dbl&gt;, .std.resid &lt;dbl&gt;, index &lt;int&gt;
 ```
 
 ---
@@ -358,7 +425,7 @@ ggplot(fit_resid, aes(index, .std.resid, color = LOW)) +
   geom_point(size = 2)
 ```
 
-&lt;img src="lec7_files/figure-html/unnamed-chunk-13-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec7_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
 
 ???
 Those standardized residuals that exceed 3 represent possible outliers and may deserve closer attention.
@@ -372,7 +439,7 @@ ggplot(fit_resid, aes(index, .std.resid)) +
   geom_point(size = 2) + facet_wrap(~ LOW, scales = "free")
 ```
 
-&lt;img src="lec7_files/figure-html/unnamed-chunk-14-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec7_files/figure-html/unnamed-chunk-16-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Model - residuals
@@ -386,7 +453,7 @@ ggplot(fit_resid, aes(x = .fitted, y = .cooksd,
              data = top_n(fit_resid, 5, .cooksd))
 ```
 
-&lt;img src="lec7_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec7_files/figure-html/unnamed-chunk-17-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
 ## Model - agreement
@@ -421,6 +488,7 @@ table(bin_pred, LOWBWT$LOW)
 ---
 ## Model - agreement
 
+.tiny[
 
 ```r
 library(caret)
@@ -456,6 +524,17 @@ confusionMatrix(data = bin_pred, reference = LOWBWT$LOW)
 &gt;        'Positive' Class : 0              
 &gt; 
 ```
+]
+
+---
+## Model - agreement
+
+.center[![](./images/confusion.png)]
+
+---
+## Model - agreement
+
+.center[![](./images/agree.png)]
 
 ---
 ## Model - agreement
@@ -495,7 +574,7 @@ roc
 plot(roc, print.auc = T)
 ```
 
-&lt;img src="lec7_files/figure-html/unnamed-chunk-19-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="lec7_files/figure-html/unnamed-chunk-21-1.png" style="display: block; margin: auto;" /&gt;
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

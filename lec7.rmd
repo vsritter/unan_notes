@@ -3,7 +3,7 @@ title: "Biostatistics Module"
 subtitle: "R Lab"
 author: "Victor Ritter"
 institute: "UNC-CH"
-date: "Jan 2020"
+date: "01/29/2020"
 output:
   xaringan::moon_reader:
     lib_dir: libs
@@ -14,6 +14,12 @@ output:
       # highlightLines: true
       countIncrementalSlides: false
 ---
+
+```{css}
+.tiny .remark-code {
+  font-size: 70% !important;
+}
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(comment = ">",
@@ -30,6 +36,7 @@ library(ResourceSelection)
 library(broom)
 library(pROC)
 ```
+---
 
 class: center, middle, inverse
 # Part I
@@ -98,9 +105,21 @@ fit
 ---
 ## Model - fit
 
+.tiny[
 ```{r}
 summary(fit)
 ```
+]
+
+---
+## Model - fit
+
+.tiny[
+```{r}
+cbind(coef(fit), confint(fit)) %>% exp() 
+pubh::glm_coef(fit)
+```
+]
 
 ---
 ## Model - analysis of deviance table
@@ -120,7 +139,8 @@ car::Anova(fit)
 ## Model - analysis of deviance table
 
 ```{r}
-fit1 <- update(fit, . ~ AGE + LWT * RACE)
+fit1 <- glm(LOW ~ AGE + LWT * RACE,
+          family = binomial(link = "logit"), data = LOWBWT)
 anova(fit1, fit, test = "LR")
 ```
 
@@ -155,9 +175,13 @@ hoslem.test(fit$y, fitted(fit), g = 10)
 ---
 ## Model - overdispersion
 
+.tiny[
 ```{r}
-summary(update(fit, . ~ ., family = quasibinomial))
+fit2 <- glm(LOW ~ AGE + LWT + RACE,
+            family = binomial(link = "logit"), data = LOWBWT)
+summary(fit2)
 ```
+]
 
 ---
 ## Model - residuals
@@ -213,10 +237,22 @@ table(bin_pred, LOWBWT$LOW)
 ---
 ## Model - agreement
 
+.tiny[
 ```{r}
 library(caret)
 confusionMatrix(data = bin_pred, reference = LOWBWT$LOW)
 ```
+]
+
+---
+## Model - agreement
+
+.center[![](./images/confusion.png)]
+
+---
+## Model - agreement
+
+.center[![](./images/agree.png)]
 
 ---
 ## Model - agreement
