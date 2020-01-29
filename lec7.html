@@ -201,16 +201,16 @@ cbind(coef(fit), confint(fit)) %&gt;% exp()
 ```
 
 ```r
-pubh::glm_coef(fit)
+pubh::glm_coef(fit, se_rob = F, type = "ext")
 ```
 
 ```
-&gt;                     Odds ratio Pr(&gt;|z|)
-&gt; (Intercept) 3.69 (0.19, 73.16)    0.391
-&gt; AGE          0.97 (0.91, 1.04)    0.466
-&gt; LWT             0.99 (0.97, 1)    0.019
-&gt; RACE2        2.73 (1.08, 6.88)    0.033
-&gt; RACE3        1.56 (0.81, 3.01)    0.187
+&gt;             Odds ratio Std. Error Lower CI Upper CI Pr(&gt;|z|)
+&gt; (Intercept)       3.69       1.07     0.45    30.07    0.222
+&gt; AGE               0.97       0.03     0.91     1.04    0.443
+&gt; LWT               0.99       0.01     0.97     1.00    0.028
+&gt; RACE2             2.73       0.50     1.03     7.24    0.044
+&gt; RACE3             1.56       0.36     0.77     3.16    0.218
 ```
 ]
 

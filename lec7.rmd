@@ -117,7 +117,7 @@ summary(fit)
 .tiny[
 ```{r}
 cbind(coef(fit), confint(fit)) %>% exp() 
-pubh::glm_coef(fit)
+pubh::glm_coef(fit, se_rob = F, type = "ext")
 ```
 ]
 
