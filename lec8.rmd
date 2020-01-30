@@ -3,7 +3,7 @@ title: "Biostatistics Module"
 subtitle: "R Lab"
 author: "Victor Ritter"
 institute: "UNC-CH"
-date: "Jan 2020"
+date: "01/30/2020"
 output:
   xaringan::moon_reader:
     lib_dir: libs
@@ -15,9 +15,15 @@ output:
       countIncrementalSlides: false
 ---
 
+```{css}
+.tiny .remark-code {
+  font-size: 70% !important;
+}
+```
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(comment = ">",
-                      cache = TRUE,
+                      cache = FALSE,
                       cache.path = "./cache/")
 options(htmltools.dir.version = FALSE,
         dplyr.width = 60,
@@ -25,7 +31,10 @@ options(htmltools.dir.version = FALSE,
         dplyr.print_max = 5)
 
 library(tidyverse)
+library(broom)
+library(VGAM)
 ```
+---
 
 class: center, middle, inverse
 # Part I
@@ -49,7 +58,7 @@ class: center, middle, inverse
 .center[![:scale 70%](./images/link.png)]
 
 ???
-can be usefull cloglog is useful when we have too many zeros
+can be useful cloglog is useful when we have too many zeros
 
 ---
 ## GLMs in R
@@ -86,11 +95,13 @@ hist(crabs$satellites)
 ---
 ## Model fitting
 
+.tiny[
 ```{r}
 fit <- glm(satellites ~ weight,
            family = poisson(link = "log"), data = crabs)
 summary(fit)
 ```
+]
 
 ---
 ## Model fitting
@@ -110,7 +121,7 @@ summary(fit)
 ---
 ## Model fitting - overdispersion
 
-For Poisson, dispertion parameter should be 1
+For Poisson, dispersion parameter should be 1
 
 ```{r}
 fit$deviance/fit$df.residual
@@ -120,29 +131,52 @@ fit$deviance/fit$df.residual
 
 --
 
-Again, we can use a more flaxible approach
+**What do we do?**
 
+--
+
+- Scale standard errors
+
+```{r}
+sqrt(.01997^2*3.32)
+```
+
+
+- Negative Binomial regression
+
+- Quasilikelihood regression
+
+---
+## Model fitting - overdispersion
+
+.tiny[
+```{r}
+summary(fit, dispersion = 3.32)
+```
+]
+
+---
+## Model fitting - overdispersion
+
+.tiny[
 ```{r}
 fit2 <- glm(satellites ~ weight,
            family = quasipoisson(link = "log"), data = crabs)
-```
-
----
-## Model fitting - overdispersion
-
-```{r}
 summary(fit2)
 ```
+]
 
 ---
 ## Model fitting - overdispersion
 
-If we want to stay on the likelihood paradim, we can try NB
+If we want to stay on the likelihood paradigm, we can try NB
 
+.tiny[
 ```{r}
 fit_nb <- glm.nb(satellites ~ weight, data = crabs)
 summary(fit_nb)
 ```
+]
 
 ---
 ## Model fitting - overdispersion
@@ -194,9 +228,11 @@ fit_gr <- glm(satellites ~ color + spine_condition,
 ---
 ## Modeling the rate
 
+.tiny[
 ```{r}
 summary(fit_gr)
 ```
+]
 
 ---
 ## Modeling the rate
@@ -209,10 +245,96 @@ anova(fit_gr, test = "Rao")
 ## Modeling the rate
 
 ```{r}
-coef <- broom::tidy(fit_gr, exponentiate = T, conf.int = T)
+coef <- tidy(fit_gr, exponentiate = T, conf.int = T)
 coef[,1:5]
 coef[,c(1, 6:7)]
 ```
+
+---
+## Multinomial Regression
+
+- **VGAM** package and the **vglm()** function
+
+.center[![:scale 70%](./images/vgam.png)]
+
+--
+
+- **Data:** Pneumoconiosis in coalminers data (McCullagh and Nelder, 1989)
+
+  - The pneumo data frame has 8 rows and 4 columns
+  
+  - Exposure time (in years) is explanatory, and there are 3 ordinal response variables (normal, mild, sevire)
+
+---
+## Multinomial Regression
+
+```{r}
+library(VGAM)
+as_tibble(pneumo) %>% print(n=8)
+```
+
+---
+## Multinomial Regression - proportional odds
+
+.tiny[
+```{r}
+fit <- vglm(cbind(normal, mild, severe) ~ exposure.time,
+            cumulative(parallel = TRUE, reverse = TRUE), data = pneumo)
+summary(fit)
+```
+]
+
+---
+## Multinomial Regression - proportional odds
+
+```{r}
+cbind(coef(fit), confintvglm(fit)) %>% exp() %>% round(2)
+```
+
+---
+## Multinomial Regression - proportional odds
+
+.tiny[
+```{r}
+fit3 <- vglm(cbind(normal, mild, severe) ~ exposure.time,
+            cumulative(parallel = FALSE, reverse = TRUE), data = pneumo)
+summary(fit3)
+```
+]
+
+---
+## Multinomial Regression - proportional odds
+
+- Check the proportional odds assumption with a LRT
+
+```{r}
+lrtest(fit3, fit)
+```
+
+---
+## Multinomial Regression - general logit
+
+- **Data:** marital data mainly from a large NZ company collected in the early 1990s.
+
+  - age: a numeric vector, age in years
+  
+  - ethnicity: a factor with levels European Maori Other Polynesian. Only Europeans are included in the data set
+  
+  - mstatus: a factor with levels Divorced/Separated, Married/Partnered, Single, Widowed.
+  
+```{r}
+as_tibble(marital.nz)
+```
+
+---
+## Multinomial Regression - general logit
+.tiny[
+```{r}
+fit4 <- vglm(mstatus ~ age, multinomial(refLevel = 1), data = marital.nz)
+summary(fit4)
+```
+]
+
 
 ---
 ## Models for skewed data
@@ -230,14 +352,6 @@ library(NHSRdatasets)
 ggplot(LOS_model, aes(x = LOS)) +
   geom_histogram(bins = 20, fill = "lightblue", col = 1)
 ```
-
----
-## Models for skewed data
-
-```{r, fig.width=7, fig.height=3.5, fig.align='center'}
-ggplot(LOS_model, aes(x = log(LOS))) +
-  geom_histogram(bins = 20, fill = "lightblue", col = 1)
-
 
 
 

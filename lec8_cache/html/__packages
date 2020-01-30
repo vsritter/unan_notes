@@ -26,3 +26,9 @@ lattice
 caret
 pROC
 NHSRdatasets
+Matrix
+lme4
+lmerTest
+geepack
+epiR
+VGAM
