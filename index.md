@@ -48,4 +48,4 @@ Day 9 - 01/30/2020
 
 Day 10 - 01/31/2020 
 - Stats Notes
-- Lab Notes
+- Lab Notes \[[html](/lec9.html)\]

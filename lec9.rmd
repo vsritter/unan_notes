@@ -3,7 +3,7 @@ title: "Biostatistics Module"
 subtitle: "R Lab"
 author: "Victor Ritter"
 institute: "UNC-CH"
-date: "Jan 2020"
+date: "31/01/2020"
 output:
   xaringan::moon_reader:
     lib_dir: libs
@@ -21,10 +21,9 @@ output:
 }
 ```
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(comment = ">",
-                      cache = TRUE,
+                      cache = FALSE,
                       cache.path = "./cache/")
 options(htmltools.dir.version = FALSE,
         dplyr.width = 60,
@@ -33,7 +32,11 @@ options(htmltools.dir.version = FALSE,
 
 library(lme4)
 library(lmerTest)
+library(broom.mixed)
+library(geepack)
+library(tidyverse)
 ```
+---
 
 class: center, middle, inverse
 # Part I
