@@ -1,5 +1,5 @@
 
-## Biostatistics Module Notes
+## Biostatistics Module Notes 
 
 Final project due 01/31
 - Guidelines \[[html](/final_project.html)\]
